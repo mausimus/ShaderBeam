@@ -108,6 +108,9 @@ value shown under "Content FPS" in ShaderBeam (including decimals)
 Sometimes capture API can start lagging, press Ctrl+Shift+A to
 restart ShaderBeam and resync.
 
+You can also try disabling LCD Anti-retention (it's not necessary on OLEDs at all, only on LCDs)
+as it can introduce choppiness to the capture.
+
 #### > ShaderBeam isn't on top of my game
 
 Whenever this happens, press Ctrl+Shift+G to force ShaderBeam on top.
