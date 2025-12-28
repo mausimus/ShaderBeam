@@ -63,7 +63,7 @@ can even use an iGPU (for example Intel UHD 770 can do 1080p at 800fps+). You ca
 button in ShaderBeam to estimate maximum shading rate of your GPU.
 
 You do not need to connect a display to the secondary GPU, keep everything plugged into
-your primary GPU. In ShaderBeam, simply change Render GPU to your iGPU or secondary dGPU.
+your primary GPU. In ShaderBeam, simply change Shader GPU to your iGPU or secondary dGPU.
 
 ### Usage Guide
 
