@@ -128,7 +128,7 @@ public:
         // Adds a slew to FRAMES_PER_HZ when ANTI_RETENTION is enabled and FRAMES_PER_HZ is an exact even integer.
         // We support non-integer FRAMES_PER_HZ, so this is a magically convenient solution
         m_params.effectiveFramesPerHz = (float)m_framesPerHz;
-        if(m_lcdAntiRetention && floorf(m_framesPerHz) == m_framesPerHz && (((int)m_framesPerHz) % 2) == 0)
+        if(m_lcdAntiRetention && renderContext.options.monitorType == 0 && floorf(m_framesPerHz) == m_framesPerHz && (((int)m_framesPerHz) % 2) == 0)
         {
             m_params.effectiveFramesPerHz += m_lcdInversionCompensationSlew;
         }

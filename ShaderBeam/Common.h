@@ -111,6 +111,7 @@ struct Options
     int  captureMethod { 0 };
     int  splitScreen { 0 };
     int  hardwareSrgb { 0 };
+    int  monitorType { 0 };
 
     // internal options
     bool     exclusive { false };

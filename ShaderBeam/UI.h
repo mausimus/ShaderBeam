@@ -39,6 +39,7 @@ public:
     std::vector<DisplayInfo> m_displays;
     std::vector<ShaderInfo>  m_shaders;
     std::vector<CaptureInfo> m_captures;
+    std::vector<std::string> m_monitorTypes;
 
 private:
     void SetStyle(ImGuiStyle& style);
@@ -57,6 +58,7 @@ private:
         int hardwareSrgb;
         int captureMethod;
         int splitScreen;
+        int monitorType;
     } m_pending;
 
     ImFont*        m_smallFont;

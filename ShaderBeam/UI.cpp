@@ -140,11 +140,11 @@ void UI::Render()
     {
         auto viewport = ImGui::GetMainViewport()->Size;
 
-        ImVec2 mainWindowSize(36 * m_fontSize, 39 * m_fontSize);
+        ImVec2 mainWindowSize(36 * m_fontSize, 41 * m_fontSize);
         ImVec2 mainWindowPos(2 * m_fontSize, (viewport.y - mainWindowSize.y) / 2.0f);
         if(mainWindowPos.y < 0)
             mainWindowPos.y = 0;
-        ImGui::SetNextWindowSize(mainWindowSize, ImGuiCond_FirstUseEver);
+        ImGui::SetNextWindowSize(mainWindowSize, ImGuiCond_Always);
         ImGui::SetNextWindowPos(mainWindowPos, ImGuiCond_FirstUseEver);
         if(ImGui::Begin("ShaderBeam"))
         {
@@ -238,6 +238,23 @@ void UI::Render()
             else
                 ShowHelpMarker("Number of display frames per content frame, determines Content FPS. Defaults to Display Hz / 60 and you normally don't need to change it.");
 
+            if(ImGui::BeginCombo("Monitor Type", m_monitorTypes[m_pending.monitorType].c_str(), 0))
+            {
+                for(int m = 0; m < m_monitorTypes.size(); m++)
+                {
+                    auto selected = m == m_pending.monitorType;
+                    if(ImGui::Selectable(m_monitorTypes[m].c_str(), selected))
+                    {
+                        m_pending.monitorType = m;
+                        SetApplyRequired();
+                    }
+                    if(selected)
+                    {
+                        ImGui::SetItemDefaultFocus();
+                    }
+                }
+                ImGui::EndCombo();
+            }
             if(ImGui::BeginCombo("Shader Display", m_displays[m_pending.shaderDisplayNo].name.c_str(), 0))
             {
                 for(const auto& display : m_displays)
@@ -559,6 +576,7 @@ void UI::ClearPendingChanges()
     m_pending.hardwareSrgb     = m_options.hardwareSrgb;
     m_pending.captureMethod    = m_options.captureMethod;
     m_pending.splitScreen      = m_options.splitScreen;
+    m_pending.monitorType      = m_options.monitorType;
 }
 
 void UI::ApplyPendingChanges()
@@ -571,6 +589,7 @@ void UI::ApplyPendingChanges()
     m_options.hardwareSrgb     = m_pending.hardwareSrgb;
     m_options.captureMethod    = m_pending.captureMethod;
     m_options.splitScreen      = m_pending.splitScreen;
+    m_options.monitorType      = m_pending.monitorType;
 }
 
 void UI::SetBenchmark(float fps)

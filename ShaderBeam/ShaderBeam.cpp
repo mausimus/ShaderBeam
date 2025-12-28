@@ -40,6 +40,9 @@ void ShaderBeam::Create(HWND window)
     if(dd->IsSupported())
         m_ui.m_captures.emplace_back((int)m_ui.m_captures.size(), dd->m_name, dd);
 
+    m_ui.m_monitorTypes.push_back("LCD");
+    m_ui.m_monitorTypes.push_back("OLED");
+
     timeBeginPeriod(1);
     Helpers::InitQPC();
 
