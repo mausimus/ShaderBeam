@@ -93,7 +93,7 @@ SamplerState iChannel_sampler : register(s2);
 // Copyright 2024 Mark Rejhon (@BlurBusters) & Timothy Lottes (@NOTimothyLottes)
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
-// of this software and associated documentation files (the ìSoftwareî), to deal
+// of this software and associated documentation files (the ‚ÄúSoftware‚Äù), to deal
 // in the Software without restriction, including without limitation the rights
 // to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
 // copies of the Software, and to permit persons to whom the Software is
@@ -102,7 +102,7 @@ SamplerState iChannel_sampler : register(s2);
 // The above copyright notice and this permission notice shall be included in
 // all copies or substantial portions of the Software.
 //
-// THE SOFTWARE IS PROVIDED ìAS ISî, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+// THE SOFTWARE IS PROVIDED ‚ÄúAS IS‚Äù, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
 // IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
 // FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
 // AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
@@ -186,7 +186,6 @@ float3 srgb2linear(float3 c)
 //
 float3 getPixelFromOrigFrame(float2 uv, float getFromHzNumber, float currentHzCounter)
 {
-    // We'll offset uv.x by baseShift, and round-off to screen coordinates to avoid seam artifacts
     float age = currentHzCounter - getFromHzNumber;
     if (age < 1)
     {
