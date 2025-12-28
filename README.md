@@ -18,7 +18,7 @@ check out its sister app [ShaderGlass](https://github.com/mausimus/ShaderGlass).
 
 ### Download
 
-First public beta (v0.1, 28 Dec 2025) - report feedback here: #2
+First public beta (v0.1, 28 Dec 2025) - [report feedback here](https://github.com/mausimus/ShaderBeam/discussions/2)
 
 https://github.com/mausimus/ShaderBeam/releases/download/v0.1/ShaderBeam-0.1-win-x64.zip
 
