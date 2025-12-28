@@ -31,7 +31,10 @@ If you are photosensitive please take necessary precautions.
 If you have a high refresh monitor, you can try the CRT Beam Simulator
 in browser here: [https://testufo.com/crt](https://testufo.com/crt)
 
-ShaderBeam aims to apply the same effect to your whole desktop, including
+Flat-panel displays create a lot of blur around moving objects and this technology
+brings back motion clarity that CRTs had.
+
+ShaderBeam applies the same effect to your whole desktop, including
 fullscreen gaming.
 
 ### Demo
