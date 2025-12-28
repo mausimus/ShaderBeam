@@ -68,8 +68,8 @@ your primary GPU. In ShaderBeam, simply change Shader GPU to your iGPU or second
 ### Usage Guide
 
 > [!IMPORTANT]
-> If you have an OLED, disable LCD Anti-retention. It causes occasional stutters as it
-desyncs CRT refresh rate from content refresh rate, and is not needed for OLEDs.
+> If you have an OLED, make sure to select it to disable LCD Anti-retention. It causes occasional
+> stutters as it desyncs CRT refresh rate from content refresh rate, and is not needed for OLEDs.
 
 * ShaderBeam is fullscreen-only, you can change the display to use via UI.
 * Upon startup ShaderBeam will automatically start simulation using default parameters.
