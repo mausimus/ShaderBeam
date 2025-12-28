@@ -13,8 +13,8 @@ check out its sister app [ShaderGlass](https://github.com/mausimus/ShaderGlass).
 
 * High-refresh monitor (100 Hz or more, 240 Hz+ recommended)
 * Windows 10/11 (latest Windows 11 recommended)
-* RivaTuner Statistics Server (RTSS) for frame-limiting content
 * Recommended: a second dGPU (or iGPU) to reduce desync issues
+* Optional: RivaTuner Statistics Server (RTSS) for frame-limiting content
 
 ### Download
 
@@ -100,7 +100,7 @@ but can leave temporary afterimages after longer use.
 
 #### > Game capture is choppy
 
-For best results you need to limit your game's frame rate to exact time of a subframe,
+For best results you can try limiting your game's frame rate to exact time of a subframe,
 i.e. on a "240 Hz" display which could actually be running at 239.76 Hz, the frame rate should be
 59.94 (~240/60 = 4 subframes). The best way to do this is:
 * in-game set unlimited frames and v-sync on
