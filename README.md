@@ -49,7 +49,7 @@ Due to extreme timing requirements ShaderBeam performs best in simple setups
 with no other apps or overlays running. Make sure to try these:
 
 * Disable "Hardware-accelerated GPU Scheduling" (Windows Settings: Display -> Graphics -> Advanced)
-* Disable VRR (G-Sync, FreeSync etc.)
+* Disable VRR (G-Sync, FreeSync etc.) and Smart VSync (ShaderBeam needs to run at VSync)
 * Disable HDR, it's not currently supported
 * Disable MPO using registry files from [here](https://nvidia.custhelp.com/app/answers/detail/a_id/5157/~/after-updating-to-nvidia-game-ready-driver-461.09-or-newer%2C-some-desktop-apps) 
 * Use only one monitor and disconnect any others
@@ -97,6 +97,12 @@ Try all the Tips above, especially disabling HAGS and MPO, or an older game.
 The best way to avoid this issue is to use a **second GPU for ShaderBeam**.
 You can also try "Simple BFI" shader which is much simpler and extremely fast,
 but can leave temporary afterimages after longer use.
+
+Also double-check that Rendered FPS equals Display Hz. If Rendered FPS is
+below Display Hz it means your Shader GPU isn't keeping up (try lower resolution
+or refresh rate). If Rendered FPS is above Display Hz it means VSync
+isn't being applied - check GPU settings and disable any VSync overrides
+(like Smart VSync etc.).
 
 #### > Game capture is choppy
 
