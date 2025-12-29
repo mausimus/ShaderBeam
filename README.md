@@ -12,7 +12,7 @@ check out its sister app [ShaderGlass](https://github.com/mausimus/ShaderGlass).
 ### Requirements
 
 * High-refresh monitor (100 Hz or more, 240 Hz+ recommended)
-* Windows 10/11 (latest Windows 11 recommended)
+* Windows 10/11 (latest Windows 11 recommended, Windows 10 will have yellow border)
 * Recommended: a second dGPU (or iGPU) to reduce desync issues
 * Optional: RivaTuner Statistics Server (RTSS) for frame-limiting content
 
