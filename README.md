@@ -1,3 +1,5 @@
+![License](https://img.shields.io/github/license/mausimus/ShaderBeam?color=red) ![GitHub Stars](https://img.shields.io/github/stars/mausimus/ShaderBeam?color=yellow) ![Downloads](https://img.shields.io/github/downloads/mausimus/ShaderBeam/total) ![Latest Release](https://img.shields.io/github/release-date/mausimus/ShaderBeam?label=latest%20release&color=blue) ![Beta Release](https://img.shields.io/github/release-date-pre/mausimus/ShaderBeam?label=beta%20release&color=orange)
+
 ## ShaderBeam
 
 Overlay for running BFI/CRT Beam Simulation shaders on top of Windows desktop.
