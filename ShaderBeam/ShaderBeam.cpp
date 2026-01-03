@@ -32,6 +32,7 @@ void ShaderBeam::Create(HWND window)
     m_ui.m_adapters = GetAdapters();
     m_ui.m_displays = GetDisplays();
     m_ui.m_shaders  = m_shaderManager.GetShaders();
+    ScanWindows();
 
     auto wgc = std::make_shared<CaptureWGC>(m_watcher, m_options);
     if(wgc->IsSupported())
@@ -58,6 +59,11 @@ void ShaderBeam::Destroy()
     UnregisterHotKey(m_options.outputWindow, HOTKEY_QUIT);
 
     timeEndPeriod(1);
+}
+
+void ShaderBeam::ScanWindows()
+{
+    m_ui.m_windows = GetWindows();
 }
 
 void ShaderBeam::RunBenchmark()
@@ -97,9 +103,11 @@ void ShaderBeam::Start()
     UpdateVsyncRate();
 
     const auto& captureDisplay = m_ui.m_displays.at(m_options.captureDisplayNo);
+    const auto& captureWindow  = m_ui.m_windows.at(m_options.captureWindowNo);
     const auto& shaderDisplay  = m_ui.m_displays.at(m_options.shaderDisplayNo);
 
     m_options.captureMonitor = captureDisplay.monitor;
+    m_options.captureWindow  = captureWindow.hwnd;
     m_options.outputWidth    = shaderDisplay.width;
     m_options.outputHeight   = shaderDisplay.height;
 
@@ -218,6 +226,50 @@ std::vector<DisplayInfo> ShaderBeam::GetDisplays()
     std::vector<DisplayInfo> displays;
     EnumDisplayMonitors(NULL, NULL, EnumDisplayMonitorsProc, (LPARAM)&displays);
     return displays;
+}
+
+// See http://blogs.msdn.com/b/oldnewthing/archive/2007/10/08/5351207.aspx
+BOOL IsAltTabWindow(HWND hwnd)
+{
+    // Start at the root owner
+    HWND hwndWalk = GetAncestor(hwnd, GA_ROOTOWNER);
+
+    // See if we are the last active visible popup
+    HWND hwndTry;
+    while((hwndTry = GetLastActivePopup(hwndWalk)) != hwndTry)
+    {
+        if(IsWindowVisible(hwndTry))
+            break;
+        hwndWalk = hwndTry;
+    }
+    return hwndWalk == hwnd;
+}
+
+static BOOL CALLBACK EnumWindowsProc(_In_ HWND hWnd, _In_ LPARAM lParam)
+{
+    std::vector<WindowInfo>* windows = (std::vector<WindowInfo>*)lParam;
+
+    wchar_t name[128];
+    if(IsWindowVisible(hWnd) && IsAltTabWindow(hWnd) && GetWindowText(hWnd, name, 127))
+    {
+        std::string displayName = Helpers::WCharToString(name) + " (" + std::to_string((uint64_t)hWnd) + ")";
+        windows->emplace_back(0, hWnd, displayName);
+    }
+    return true;
+}
+
+std::vector<WindowInfo> ShaderBeam::GetWindows()
+{
+    std::vector<WindowInfo> windows;
+    EnumWindows(EnumWindowsProc, (LPARAM)&windows);
+    std::sort(windows.begin(), windows.end(), [](const WindowInfo& a, const WindowInfo& b) { return a.name < b.name; });
+    windows.insert(windows.begin(), WindowInfo { 0, 0, "Desktop" });
+    unsigned int no = 0;
+    for(auto& w : windows)
+    {
+        w.no = no++;
+    }
+    return windows;
 }
 
 } // namespace ShaderBeam

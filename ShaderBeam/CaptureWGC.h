@@ -29,6 +29,7 @@ private:
     template <typename T>
     static winrt::com_ptr<T>                                              GetDXGIInterfaceFromObject(winrt::Windows::Foundation::IInspectable const& object);
     static winrt::Windows::Graphics::Capture::GraphicsCaptureItem         CreateCaptureItemForMonitor(HMONITOR hmon);
+    static winrt::Windows::Graphics::Capture::GraphicsCaptureItem         CreateCaptureItemForWindow(HWND hwnd);
     static winrt::Windows::Graphics::DirectX::Direct3D11::IDirect3DDevice CreateDirect3DDevice(IDXGIDevice* dxgi_device);
     static bool                                                           HasCaptureAPI();
     static bool                                                           CanDisableBorder();

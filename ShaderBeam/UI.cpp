@@ -293,6 +293,25 @@ void UI::Render()
             }
             ShowHelpMarker("Display to capture (usually same as Shader Display).");
 
+            if(ImGui::BeginCombo("Capture Window", m_windows[m_pending.captureWindowNo].name.c_str(), 0))
+            {
+                for(const auto& window : m_windows)
+                {
+                    auto selected = window.no == m_pending.captureWindowNo;
+                    if(ImGui::Selectable(window.name.c_str(), selected))
+                    {
+                        m_pending.captureWindowNo = window.no;
+                        SetApplyRequired();
+                    }
+                    if(selected)
+                    {
+                        ImGui::SetItemDefaultFocus();
+                    }
+                }
+                ImGui::EndCombo();
+            }
+            ShowHelpMarker("Window to capture.");
+
             if(ImGui::BeginCombo("Shader GPU", m_adapters[m_pending.shaderAdapterNo].name.c_str(), 0))
             {
                 for(const auto& adapter : m_adapters)
@@ -571,6 +590,7 @@ void UI::ClearPendingChanges()
     m_pending.captureAdapterNo = m_options.captureAdapterNo;
     m_pending.shaderAdapterNo  = m_options.shaderAdapterNo;
     m_pending.captureDisplayNo = m_options.captureDisplayNo;
+    m_pending.captureWindowNo  = m_options.captureWindowNo;
     m_pending.shaderDisplayNo  = m_options.shaderDisplayNo;
     m_pending.subFrames        = m_options.subFrames;
     m_pending.hardwareSrgb     = m_options.hardwareSrgb;
@@ -584,6 +604,7 @@ void UI::ApplyPendingChanges()
     m_options.captureAdapterNo = m_pending.captureAdapterNo;
     m_options.shaderAdapterNo  = m_pending.shaderAdapterNo;
     m_options.captureDisplayNo = m_pending.captureDisplayNo;
+    m_options.captureWindowNo  = m_pending.captureWindowNo;
     m_options.shaderDisplayNo  = m_pending.shaderDisplayNo;
     m_options.subFrames        = m_pending.subFrames;
     m_options.hardwareSrgb     = m_pending.hardwareSrgb;

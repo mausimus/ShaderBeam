@@ -28,6 +28,7 @@ public:
 
     void RunBenchmark();
     void UpdateVsyncRate();
+    void ScanWindows();
 
     UI      m_ui;
     Options m_options;
@@ -41,6 +42,7 @@ private:
 
     std::vector<AdapterInfo> GetAdapters();
     std::vector<DisplayInfo> GetDisplays();
+    std::vector<WindowInfo>  GetWindows();
     void                     DefaultOptions();
 
     static std::vector<winrt::com_ptr<IDXGIAdapter2>> EnumerateAdapters();

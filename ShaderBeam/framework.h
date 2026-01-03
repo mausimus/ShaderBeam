@@ -22,8 +22,10 @@ MIT License
 
 #include <string>
 #include <stdexcept>
+#include <algorithm>
 
 #include <winrt/Windows.Foundation.h>
+#include <winrt/Windows.Foundation.Collections.h>
 #include <winrt/Windows.Foundation.Metadata.h>
 #include <winrt/Windows.Graphics.Capture.h>
 

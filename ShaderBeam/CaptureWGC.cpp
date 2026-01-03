@@ -28,7 +28,17 @@ bool CaptureWGC::IsSupported()
 
 void CaptureWGC::InternalStart()
 {
-    auto item        = CreateCaptureItemForMonitor(m_options.captureMonitor);
+    winrt::Windows::Graphics::Capture::GraphicsCaptureItem item { 0 };
+
+    if(m_options.captureWindow)
+    {
+        item = CreateCaptureItemForWindow(m_options.captureWindow);
+    }
+    else
+    {
+        item = CreateCaptureItemForMonitor(m_options.captureMonitor);
+    }
+
     auto format      = winrt::Windows::Graphics::DirectX::DirectXPixelFormat::B8G8R8A8UIntNormalized;
     auto contentSize = item.Size();
 
@@ -102,6 +112,14 @@ winrt::Windows::Graphics::Capture::GraphicsCaptureItem CaptureWGC::CreateCapture
     auto interop_factory = winrt::get_activation_factory<winrt::Windows::Graphics::Capture::GraphicsCaptureItem, IGraphicsCaptureItemInterop>();
     winrt::Windows::Graphics::Capture::GraphicsCaptureItem item = { nullptr };
     winrt::check_hresult(interop_factory->CreateForMonitor(hmon, winrt::guid_of<ABI::Windows::Graphics::Capture::IGraphicsCaptureItem>(), winrt::put_abi(item)));
+    return item;
+}
+
+winrt::Windows::Graphics::Capture::GraphicsCaptureItem CaptureWGC::CreateCaptureItemForWindow(HWND hwnd)
+{
+    auto interop_factory = winrt::get_activation_factory<winrt::Windows::Graphics::Capture::GraphicsCaptureItem, IGraphicsCaptureItemInterop>();
+    winrt::Windows::Graphics::Capture::GraphicsCaptureItem item = { nullptr };
+    winrt::check_hresult(interop_factory->CreateForWindow(hwnd, winrt::guid_of<ABI::Windows::Graphics::Capture::IGraphicsCaptureItem>(), winrt::put_abi(item)));
     return item;
 }
 

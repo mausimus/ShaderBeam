@@ -40,6 +40,7 @@ public:
     std::vector<ShaderInfo>  m_shaders;
     std::vector<CaptureInfo> m_captures;
     std::vector<std::string> m_monitorTypes;
+    std::vector<WindowInfo>  m_windows;
 
 private:
     void SetStyle(ImGuiStyle& style);
@@ -53,6 +54,7 @@ private:
         int captureAdapterNo;
         int shaderAdapterNo;
         int captureDisplayNo;
+        int captureWindowNo;
         int shaderDisplayNo;
         int subFrames;
         int hardwareSrgb;

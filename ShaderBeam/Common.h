@@ -87,6 +87,13 @@ struct ParameterInfo
     } p;
 };
 
+struct WindowInfo
+{
+    unsigned    no;
+    HWND        hwnd;
+    std::string name;
+};
+
 class CaptureBase;
 
 struct CaptureInfo
@@ -107,6 +114,7 @@ struct Options
     int  shaderAdapterNo { 0 };
     int  captureDisplayNo { 0 };
     int  shaderDisplayNo { 0 };
+    int  captureWindowNo { 0 };
     int  subFrames { 0 };
     int  captureMethod { 0 };
     int  splitScreen { 0 };
@@ -123,6 +131,7 @@ struct Options
     // derived
     HWND     outputWindow { 0 };
     HMONITOR captureMonitor { 0 };
+    HWND     captureWindow { 0 };
     unsigned outputWidth { 0 };
     unsigned outputHeight { 0 };
     unsigned vsyncDurationQpc { 0 };
