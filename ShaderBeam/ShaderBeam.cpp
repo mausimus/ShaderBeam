@@ -16,7 +16,7 @@ namespace ShaderBeam
 {
 
 ShaderBeam::ShaderBeam() :
-    m_options(), m_ui(m_options, m_shaderManager), m_watcher(m_ui), m_renderer(m_options, m_ui, m_watcher, m_shaderManager), m_renderThread(m_options, m_renderer)
+    m_options(), m_ui(m_options, m_shaderManager), m_watcher(m_ui), m_renderer(m_options, m_ui, m_watcher, m_shaderManager), m_renderThread(m_options, m_ui, m_renderer)
 { }
 
 void ShaderBeam::Create(HWND window)
@@ -77,10 +77,8 @@ void ShaderBeam::UpdateVsyncRate()
     DWM_TIMING_INFO dwmInfo {};
     dwmInfo.cbSize = sizeof(dwmInfo);
     DwmGetCompositionTimingInfo(NULL, &dwmInfo);
-    m_options.vsyncDurationQpc = (unsigned)dwmInfo.qpcRefreshPeriod;
-
-    auto frameTime      = Helpers::QPCToDeltaMs(dwmInfo.qpcRefreshPeriod);
-    m_options.vsyncRate = 1000.0f / frameTime;
+    m_options.vsyncDuration = Helpers::QPCToDeltaMs(dwmInfo.qpcRefreshPeriod);
+    m_options.vsyncRate     = 1000.0f / m_options.vsyncDuration;
 }
 
 void ShaderBeam::DefaultOptions()

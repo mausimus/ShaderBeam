@@ -34,6 +34,7 @@ public:
 
     float m_inputFPS { 0 };
     float m_outputFPS { 0 };
+    float m_captureLag { 0 };
 
     std::vector<AdapterInfo> m_adapters;
     std::vector<DisplayInfo> m_displays;

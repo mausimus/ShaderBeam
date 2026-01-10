@@ -138,6 +138,12 @@ void Renderer::RollInput(bool newFrame)
     m_renderContext.inputSlots[0] = latestInput;
 }
 
+void Renderer::Skip(int numFrames)
+{
+    m_renderContext.subFrameNo += numFrames;
+    m_renderContext.subFrameNo %= m_options.subFrames;
+}
+
 void Renderer::Benchmark()
 {
     const float benchmarkDuration = 2 * TICKS_PER_SEC;

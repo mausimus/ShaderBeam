@@ -120,6 +120,7 @@ struct Options
     int  splitScreen { 0 };
     int  hardwareSrgb { 0 };
     int  monitorType { 0 };
+    int  autoSyncInterval { 2 };
 
     // internal options
     bool     exclusive { false };
@@ -134,7 +135,7 @@ struct Options
     HWND     captureWindow { 0 };
     unsigned outputWidth { 0 };
     unsigned outputHeight { 0 };
-    unsigned vsyncDurationQpc { 0 };
+    float    vsyncDuration { 0 };
     float    vsyncRate { 0 };
     bool     crossAdapter { false };
 };

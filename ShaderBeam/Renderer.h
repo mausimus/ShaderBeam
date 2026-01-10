@@ -29,6 +29,7 @@ public:
     const winrt::com_ptr<ID3D11Texture2D>& GetNextInput() const;
     bool                                   NewInputRequired() const;
     void                                   RollInput(bool newFrame);
+    void                                   Skip(int numFrames);
 
     void Benchmark();
 

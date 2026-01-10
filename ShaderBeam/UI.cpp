@@ -208,7 +208,6 @@ void UI::Render()
                 ShowAlertMarker("Monitor refresh rate is too low! Run ShaderBeam on a high-refresh display, 240 Hz+ recommended!");
             else
                 ShowHelpMarker("As reported by DWM for composition timing, may oscillate slightly.");
-
             ImGui::SameLine();
             ImGui::Text("                    Rendered FPS: %7.02f", m_outputFPS);
             if(m_outputFPS < m_options.vsyncRate * 0.95f)
@@ -218,10 +217,12 @@ void UI::Render()
 
             ImGui::Text("Content FPS: %7.02f", m_options.vsyncRate / m_options.subFrames);
             ShowHelpMarker("Frame-limit your game to this (or slightly lower) value, including decimals, using RTSS.");
-
             ImGui::SameLine();
             ImGui::Text("                    Captured FPS: %7.02f", m_inputFPS);
             ShowHelpMarker("Provided by capture API.\nCan vary, ideally should be same as Content FPS (if it's higher, frame-limit your game to Content FPS using RTSS).");
+
+            ImGui::Text("Capture Lag: %7.02f ms", m_captureLag);
+            ShowHelpMarker("Time reported by Windows Capture.");
 
             ImGui::SeparatorText("Render Parameters");
 
@@ -311,6 +312,13 @@ void UI::Render()
                 ImGui::EndCombo();
             }
             ShowHelpMarker("Window to capture.");
+
+            /*if(!m_pending.captureWindowNo)
+                ImGui::BeginDisabled();*/
+            ImGui::SliderInt("Auto-sync interval", &m_options.autoSyncInterval, 0, 30);
+            /*if(!m_pending.captureWindowNo)
+                ImGui::EndDisabled();*/
+            ShowHelpMarker("Interval (in seconds) to attempt to re-sync capture to content-limited input, reduces latency.");
 
             if(ImGui::BeginCombo("Shader GPU", m_adapters[m_pending.shaderAdapterNo].name.c_str(), 0))
             {
