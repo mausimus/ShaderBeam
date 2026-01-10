@@ -26,6 +26,7 @@ public:
     void                              ResetDefaults();
     int                               NumInputsRequired();
     bool                              NewInputRequired(const RenderContext& renderContext) const;
+    bool                              SupportsResync(const RenderContext& renderContext) const;
 
 private:
     int                       m_activeProfile { 0 };

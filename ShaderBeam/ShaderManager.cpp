@@ -68,4 +68,9 @@ bool ShaderManager::NewInputRequired(const RenderContext& renderContext) const
     return m_shaderProfiles[m_activeProfile]->NewInputRequired(renderContext);
 }
 
+bool ShaderManager::SupportsResync(const RenderContext& renderContext) const
+{
+    return m_shaderProfiles[m_activeProfile]->SupportsResync(renderContext);
+}
+
 } // namespace ShaderBeam

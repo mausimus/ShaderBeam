@@ -123,6 +123,11 @@ bool Renderer::NewInputRequired() const
     return m_shaderManager.NewInputRequired(m_renderContext);
 }
 
+bool Renderer::SupportsResync() const
+{
+    return m_shaderManager.SupportsResync(m_renderContext);
+}
+
 void Renderer::RollInput(bool newFrame)
 {
     auto numInputs = m_renderContext.inputSlots.size();

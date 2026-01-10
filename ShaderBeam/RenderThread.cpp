@@ -23,10 +23,11 @@ RenderThread::RenderThread(const Options& options, const UI& ui, Renderer& rende
 
 void RenderThread::Start(const std::shared_ptr<CaptureBase>& capture)
 {
-    m_capture = capture;
-    m_handle  = CreateThread(NULL, 0, ThreadProc, this, 0, NULL);
-    m_stop    = false;
-    m_stopped = false;
+    m_capture    = capture;
+    m_nextResync = 0;
+    m_stop       = false;
+    m_stopped    = false;
+    m_handle     = CreateThread(NULL, 0, ThreadProc, this, 0, NULL);
     if(m_handle == NULL)
     {
         throw std::runtime_error("Unable to create render thread.");
@@ -53,12 +54,11 @@ void RenderThread::PollCapture()
 #else
     bool newFrame = m_capture->Poll(m_renderer.GetNextInput());
     m_renderer.RollInput(newFrame);
-    if(newFrame && m_nextResync > 0)
+    if(newFrame && m_options.autoSyncInterval && m_renderer.SupportsResync())
     {
-        m_nextResync--;
-        if(m_nextResync == 0)
+        if(m_nextResync-- == 0)
         {
-            m_nextResync = (int)m_options.autoSyncInterval * m_options.vsyncRate / m_options.subFrames;
+            m_nextResync = (int)(m_options.autoSyncInterval * m_options.vsyncRate / m_options.subFrames);
             if(m_ui.m_captureLag > m_options.vsyncDuration)
             {
                 // we receive frames older than one display frame; skip output frames until we're in sync
@@ -72,8 +72,6 @@ void RenderThread::PollCapture()
 
 void RenderThread::Run()
 {
-    m_nextResync = (int)m_options.autoSyncInterval * m_options.vsyncRate / m_options.subFrames;
-
     while(!m_stop && !m_stopped)
     {
         try

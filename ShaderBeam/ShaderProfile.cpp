@@ -62,4 +62,9 @@ bool ShaderProfile::NewInputRequired(const RenderContext& renderContext) const
     return renderContext.subFrameNo == 0;
 }
 
+bool ShaderProfile::SupportsResync(const RenderContext& renderContext) const
+{
+    return true;
+}
+
 } // namespace ShaderBeam

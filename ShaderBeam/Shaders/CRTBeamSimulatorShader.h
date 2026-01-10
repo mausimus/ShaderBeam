@@ -119,6 +119,11 @@ public:
         return m_lcdAntiRetention && renderContext.options.monitorType == MONITOR_LCD && floorf(m_framesPerHz) == m_framesPerHz && (((int)m_framesPerHz) % 2) == 0;
     }
 
+    bool SupportsResync(const RenderContext& renderContext) const
+    {
+        return !AntiRetentionRequired(renderContext);
+    }
+
     void OverrideInputs(const RenderContext& renderContext, const std::span<ID3D11ShaderResourceView*>& inputs)
     {
         if(!AntiRetentionRequired(renderContext))
