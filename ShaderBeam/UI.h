@@ -62,6 +62,8 @@ private:
         int captureMethod;
         int splitScreen;
         int monitorType;
+        int autoSyncInterval;
+        int maxQueuedFrames;
     } m_pending;
 
     ImFont*        m_smallFont;

@@ -24,6 +24,8 @@ protected:
     void RenderPipeline(const RenderContext& renderContext);
     void UpdateParameters(const RenderContext& renderContext);
 
+    virtual void OverrideInputs(const RenderContext& renderContext, const std::span<ID3D11ShaderResourceView*>& inputs);
+
 private:
     void* m_parametersBuffer { nullptr };
     int   m_parametersSize { 0 };

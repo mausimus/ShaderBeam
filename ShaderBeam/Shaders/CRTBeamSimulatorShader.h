@@ -114,6 +114,21 @@ public:
         return crtHzCounter != m_params.crtHzCounter;
     }
 
+    bool AntiRetentionRequired(const RenderContext& renderContext) const
+    {
+        return m_lcdAntiRetention && renderContext.options.monitorType == MONITOR_LCD && floorf(m_framesPerHz) == m_framesPerHz && (((int)m_framesPerHz) % 2) == 0;
+    }
+
+    void OverrideInputs(const RenderContext& renderContext, const std::span<ID3D11ShaderResourceView*>& inputs)
+    {
+        if(!AntiRetentionRequired(renderContext))
+        {
+            // run shader in frame-ahead mode
+            for(int slot = 1; slot < inputs.size(); slot++)
+                inputs[slot] = inputs[slot - 1];
+        }
+    }
+
     void Render(const RenderContext& renderContext)
     {
         // linear frame number
@@ -128,7 +143,7 @@ public:
         // Adds a slew to FRAMES_PER_HZ when ANTI_RETENTION is enabled and FRAMES_PER_HZ is an exact even integer.
         // We support non-integer FRAMES_PER_HZ, so this is a magically convenient solution
         m_params.effectiveFramesPerHz = (float)m_framesPerHz;
-        if(m_lcdAntiRetention && renderContext.options.monitorType == 0 && floorf(m_framesPerHz) == m_framesPerHz && (((int)m_framesPerHz) % 2) == 0)
+        if(AntiRetentionRequired(renderContext))
         {
             m_params.effectiveFramesPerHz += m_lcdInversionCompensationSlew;
         }

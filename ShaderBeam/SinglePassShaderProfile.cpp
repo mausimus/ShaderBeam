@@ -92,11 +92,12 @@ void SinglePassShaderProfile::RenderPipeline(const RenderContext& renderContext)
     renderContext.deviceContext->VSSetConstantBuffers(0, 1, buffer);
     renderContext.deviceContext->PSSetConstantBuffers(0, 1, buffer);
 
-    ID3D11ShaderResourceView* localResources[MAX_INPUTS];
+    ID3D11ShaderResourceView* shaderInputs[MAX_INPUTS];
     for(int slot = 0; slot < renderContext.inputSlots.size(); slot++)
-        localResources[slot] = renderContext.inputTextureViews[renderContext.inputSlots[slot]].get();
+        shaderInputs[slot] = renderContext.inputTextureViews[renderContext.inputSlots[slot]].get();
+    OverrideInputs(renderContext, std::span<ID3D11ShaderResourceView*>(shaderInputs, renderContext.inputSlots.size()));
 
-    renderContext.deviceContext->PSSetShaderResources(2, (UINT)renderContext.inputSlots.size(), localResources);
+    renderContext.deviceContext->PSSetShaderResources(2, (UINT)renderContext.inputSlots.size(), shaderInputs);
 
     ID3D11SamplerState* samplers[1] = { m_samplerState.get() };
     renderContext.deviceContext->PSSetSamplers(2, 1, samplers);
@@ -121,6 +122,8 @@ void SinglePassShaderProfile::UpdateParameters(const RenderContext& renderContex
     memcpy(mappedSubresource.pData, m_parametersBuffer, m_parametersSize);
     renderContext.deviceContext->Unmap(m_constantBuffer.get(), 0);
 }
+
+void SinglePassShaderProfile::OverrideInputs(const RenderContext& renderContext, const std::span<ID3D11ShaderResourceView*>& inputs) { }
 
 void SinglePassShaderProfile::Destroy()
 {

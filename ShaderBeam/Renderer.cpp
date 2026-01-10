@@ -163,6 +163,7 @@ void Renderer::Benchmark()
 void Renderer::Create()
 {
     auto dxgiDevice = m_renderContext.device.as<IDXGIDevice1>();
+    dxgiDevice->SetMaximumFrameLatency(m_options.maxQueuedFrames);
     if(m_options.gpuThreadPriority)
         dxgiDevice->SetGPUThreadPriority(m_options.gpuThreadPriority | 0x40000000);
 

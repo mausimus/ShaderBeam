@@ -103,6 +103,9 @@ struct CaptureInfo
     std::shared_ptr<CaptureBase> api;
 };
 
+constexpr int MONITOR_LCD  = 0;
+constexpr int MONITOR_OLED = 1;
+
 struct Options
 {
     // UI options
@@ -119,7 +122,7 @@ struct Options
     int  captureMethod { 0 };
     int  splitScreen { 0 };
     int  hardwareSrgb { 0 };
-    int  monitorType { 0 };
+    int  monitorType { MONITOR_LCD };
     int  autoSyncInterval { 2 };
 
     // internal options

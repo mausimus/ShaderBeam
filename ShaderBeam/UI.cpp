@@ -313,12 +313,18 @@ void UI::Render()
             }
             ShowHelpMarker("Window to capture.");
 
-            /*if(!m_pending.captureWindowNo)
-                ImGui::BeginDisabled();*/
-            ImGui::SliderInt("Auto-sync interval", &m_options.autoSyncInterval, 0, 30);
-            /*if(!m_pending.captureWindowNo)
-                ImGui::EndDisabled();*/
-            ShowHelpMarker("Interval (in seconds) to attempt to re-sync capture to content-limited input, reduces latency.");
+            if(ImGui::SliderInt("Auto-sync Interval", &m_pending.autoSyncInterval, 0, 30))
+            {
+                SetApplyRequired();
+            }
+            ShowHelpMarker("Interval (in seconds) to attempt to re-sync capture to content-limited input, reduces latency. Set to 0 to disable.");
+
+            if(ImGui::SliderInt("Max Queued Frames", &m_pending.maxQueuedFrames, 0, 16))
+            {
+                SetApplyRequired();
+            }
+            ShowHelpMarker(
+                "Queued presentation frames, set to 0 for driver default (usually 3).\nTrade-off between input latency and stability.\nThese are output (Display Hz) frames.");
 
             if(ImGui::BeginCombo("Shader GPU", m_adapters[m_pending.shaderAdapterNo].name.c_str(), 0))
             {
@@ -605,6 +611,8 @@ void UI::ClearPendingChanges()
     m_pending.captureMethod    = m_options.captureMethod;
     m_pending.splitScreen      = m_options.splitScreen;
     m_pending.monitorType      = m_options.monitorType;
+    m_pending.autoSyncInterval = m_options.autoSyncInterval;
+    m_pending.maxQueuedFrames  = m_options.maxQueuedFrames;
 }
 
 void UI::ApplyPendingChanges()
@@ -619,6 +627,8 @@ void UI::ApplyPendingChanges()
     m_options.captureMethod    = m_pending.captureMethod;
     m_options.splitScreen      = m_pending.splitScreen;
     m_options.monitorType      = m_pending.monitorType;
+    m_options.autoSyncInterval = m_pending.autoSyncInterval;
+    m_options.maxQueuedFrames  = m_pending.maxQueuedFrames;
 }
 
 void UI::SetBenchmark(float fps)
