@@ -19,7 +19,7 @@ MIT License
 extern IMGUI_IMPL_API LRESULT ImGui_ImplWin32_WndProcHandler(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
 
 const char* SHADERBEAM_ABOUT = "                " SHADERBEAM_TITLE "\n"
-                               "               (c) 2025 mausimus\n"
+                               "            (c) 2025-2026 mausimus\n"
                                "     https://github.com/mausimus/ShaderBeam\n"
                                "         Distributed under MIT License\n"
                                "\n"
@@ -152,7 +152,7 @@ void UI::Render()
     {
         auto viewport = ImGui::GetMainViewport()->Size;
 
-        ImVec2 mainWindowSize(36 * m_fontSize, 41 * m_fontSize);
+        ImVec2 mainWindowSize(36 * m_fontSize, 47 * m_fontSize);
         ImVec2 mainWindowPos(2 * m_fontSize, (viewport.y - mainWindowSize.y) / 2.0f);
         if(mainWindowPos.y < 0)
             mainWindowPos.y = 0;
