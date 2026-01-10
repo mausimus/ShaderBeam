@@ -29,6 +29,7 @@ public:
 
     void SetBenchmark(float fps);
     void SetError(const char* message);
+    void AddWindow(HWND hWnd);
     bool RenderRequired() const;
     bool Toggle();
 
@@ -49,21 +50,22 @@ private:
     void SetApplyRequired();
     void ApplyPendingChanges();
     void ClearPendingChanges();
+    void ScanWindows();
 
     struct
     {
-        int captureAdapterNo;
-        int shaderAdapterNo;
-        int captureDisplayNo;
-        int captureWindowNo;
-        int shaderDisplayNo;
-        int subFrames;
-        int hardwareSrgb;
-        int captureMethod;
-        int splitScreen;
-        int monitorType;
-        int autoSyncInterval;
-        int maxQueuedFrames;
+        int  captureAdapterNo;
+        int  shaderAdapterNo;
+        int  captureDisplayNo;
+        HWND captureWindow;
+        int  shaderDisplayNo;
+        int  subFrames;
+        int  hardwareSrgb;
+        int  captureMethod;
+        int  splitScreen;
+        int  monitorType;
+        int  autoSyncInterval;
+        int  maxQueuedFrames;
     } m_pending;
 
     ImFont*        m_smallFont;
@@ -77,6 +79,7 @@ private:
     const char*    m_renderGPUs { nullptr };
     bool           m_hasBenchmark { false };
     float          m_benchmarkFPS { 0 };
+    std::string    m_captureWindowName;
     bool           m_hasError { false };
     std::string    m_errorMessage;
 };

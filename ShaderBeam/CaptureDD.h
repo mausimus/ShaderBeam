@@ -19,6 +19,7 @@ public:
     CaptureDD(Watcher& watcher, const Options& options);
 
     bool IsSupported();
+    bool SupportsWindowCapture();
 
 protected:
     void InternalStart();

@@ -18,6 +18,7 @@ namespace ShaderBeam
 
 #define WM_USER_RESTART (WM_USER)
 #define WM_USER_BENCHMARK (WM_USER + 1)
+#define WM_USER_NOWINDOW (WM_USER + 2)
 
 #define HOTKEY_TOGGLEUI 0
 #define HOTKEY_BRINGTOFRONT 1
@@ -89,9 +90,9 @@ struct ParameterInfo
 
 struct WindowInfo
 {
-    unsigned    no;
     HWND        hwnd;
     std::string name;
+    bool        fullscreen;
 };
 
 class CaptureBase;
@@ -117,7 +118,6 @@ struct Options
     int  shaderAdapterNo { 0 };
     int  captureDisplayNo { 0 };
     int  shaderDisplayNo { 0 };
-    int  captureWindowNo { 0 };
     int  subFrames { 0 };
     int  captureMethod { 0 };
     int  splitScreen { 0 };

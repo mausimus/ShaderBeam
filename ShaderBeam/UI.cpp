@@ -85,6 +85,18 @@ void UI::Start(HWND window, float scale, winrt::com_ptr<ID3D11Device> device, wi
     ClearPendingChanges();
     m_hasError     = false;
     m_hasBenchmark = false;
+
+    ScanWindows();
+    m_captureWindowName.clear();
+    for(const auto& window : m_windows)
+    {
+        if(window.hwnd == m_pending.captureWindow)
+        {
+            m_captureWindowName = window.name;
+            break;
+        }
+    }
+
     m_errorMessage.clear();
     m_ready = true;
 }
@@ -294,14 +306,16 @@ void UI::Render()
             }
             ShowHelpMarker("Display to capture (usually same as Shader Display).");
 
-            if(ImGui::BeginCombo("Capture Window", m_windows[m_pending.captureWindowNo].name.c_str(), 0))
+            if(ImGui::BeginCombo("Capture Window", m_captureWindowName.c_str(), 0))
             {
+                ScanWindows();
                 for(const auto& window : m_windows)
                 {
-                    auto selected = window.no == m_pending.captureWindowNo;
-                    if(ImGui::Selectable(window.name.c_str(), selected))
+                    auto selected = window.hwnd == m_pending.captureWindow;
+                    if(ImGui::Selectable(window.name.c_str(), selected) && window.hwnd != (HWND)INVALID_HANDLE_VALUE)
                     {
-                        m_pending.captureWindowNo = window.no;
+                        m_pending.captureWindow = window.hwnd;
+                        m_captureWindowName     = window.name;
                         SetApplyRequired();
                     }
                     if(selected)
@@ -604,7 +618,7 @@ void UI::ClearPendingChanges()
     m_pending.captureAdapterNo = m_options.captureAdapterNo;
     m_pending.shaderAdapterNo  = m_options.shaderAdapterNo;
     m_pending.captureDisplayNo = m_options.captureDisplayNo;
-    m_pending.captureWindowNo  = m_options.captureWindowNo;
+    m_pending.captureWindow    = m_options.captureWindow;
     m_pending.shaderDisplayNo  = m_options.shaderDisplayNo;
     m_pending.subFrames        = m_options.subFrames;
     m_pending.hardwareSrgb     = m_options.hardwareSrgb;
@@ -620,7 +634,7 @@ void UI::ApplyPendingChanges()
     m_options.captureAdapterNo = m_pending.captureAdapterNo;
     m_options.shaderAdapterNo  = m_pending.shaderAdapterNo;
     m_options.captureDisplayNo = m_pending.captureDisplayNo;
-    m_options.captureWindowNo  = m_pending.captureWindowNo;
+    m_options.captureWindow    = m_pending.captureWindow;
     m_options.shaderDisplayNo  = m_pending.shaderDisplayNo;
     m_options.subFrames        = m_pending.subFrames;
     m_options.hardwareSrgb     = m_pending.hardwareSrgb;
@@ -641,6 +655,86 @@ void UI::SetError(const char* message)
 {
     m_hasError     = true;
     m_errorMessage = message;
+}
+
+// See http://blogs.msdn.com/b/oldnewthing/archive/2007/10/08/5351207.aspx
+BOOL IsAltTabWindow(HWND hwnd)
+{
+    // Start at the root owner
+    HWND hwndWalk = GetAncestor(hwnd, GA_ROOTOWNER);
+
+    // See if we are the last active visible popup
+    HWND hwndTry;
+    while((hwndTry = GetLastActivePopup(hwndWalk)) != hwndTry)
+    {
+        if(IsWindowVisible(hwndTry))
+            break;
+        hwndWalk = hwndTry;
+    }
+    return hwndWalk == hwnd;
+}
+
+void UI::AddWindow(HWND hWnd)
+{
+    wchar_t name[128];
+    wchar_t wclass[128];
+    if(hWnd != m_options.outputWindow && IsWindowVisible(hWnd) && IsAltTabWindow(hWnd) && !IsIconic(hWnd) && GetWindowText(hWnd, name, 127))
+    {
+        auto style      = GetWindowLongPtr(hWnd, GWL_STYLE);
+        bool fullscreen = !(style & WS_CAPTION) && !(style & WS_THICKFRAME);
+        if(fullscreen)
+        {
+            auto monitor = MonitorFromWindow(hWnd, MONITOR_DEFAULTTONEAREST);
+            if(monitor == m_options.captureMonitor)
+            {
+                RECT windowRect;
+                fullscreen =
+                    GetWindowRect(hWnd, &windowRect) && windowRect.right - windowRect.left == m_options.outputWidth && windowRect.bottom - windowRect.top == m_options.outputHeight;
+            }
+        }
+
+        if(GetClassNameW(hWnd, wclass, 127) && (wcscmp(wclass, L"Windows.UI.Core.CoreWindow") == 0 || wcscmp(wclass, L"ApplicationFrameWindow") == 0))
+        {
+            DWORD cloaked = FALSE;
+            if(DwmGetWindowAttribute(hWnd, DWMWA_CLOAKED, &cloaked, sizeof(cloaked)) == S_OK && cloaked == DWM_CLOAKED_SHELL)
+                return;
+        }
+
+        std::string displayName = Helpers::WCharToString(name) + " (" + std::to_string((uint64_t)hWnd) + ")";
+        m_windows.emplace_back(hWnd, displayName, fullscreen);
+    }
+}
+
+static BOOL CALLBACK EnumWindowsProc(_In_ HWND hWnd, _In_ LPARAM lParam)
+{
+    ((UI*)lParam)->AddWindow(hWnd);
+    return true;
+}
+
+void UI::ScanWindows()
+{
+    m_windows.clear();
+    EnumWindows(EnumWindowsProc, (LPARAM)this);
+    std::sort(m_windows.begin(), m_windows.end(), [](const WindowInfo& a, const WindowInfo& b) { return _stricmp(a.name.c_str(), b.name.c_str()) < 0; });
+
+    /*
+    std::sort(m_windows.begin(), m_windows.end(), [](const WindowInfo& a, const WindowInfo& b) {
+        if(a.fullscreen == b.fullscreen)
+            return _stricmp(a.name.c_str(), b.name.c_str()) < 0;
+        else
+            return a.fullscreen > b.fullscreen;
+    });
+    m_windows.insert(m_windows.begin(), WindowInfo { (HWND)INVALID_HANDLE_VALUE, "-- FULLSCREEN WINDOWS", true });
+    for(auto iter = m_windows.begin(); iter < m_windows.end(); iter++)
+    {
+        if(!iter->fullscreen)
+        {
+            m_windows.insert(iter, WindowInfo { (HWND)INVALID_HANDLE_VALUE, "-- OTHER WINDOWS", false });
+            break;
+        }
+    }*/
+
+    m_windows.insert(m_windows.begin(), WindowInfo { 0, "Desktop", true });
 }
 
 } // namespace ShaderBeam

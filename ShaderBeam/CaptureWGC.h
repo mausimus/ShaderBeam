@@ -19,6 +19,7 @@ public:
     CaptureWGC(Watcher& watcher, const Options& options);
 
     bool IsSupported();
+    bool SupportsWindowCapture();
 
 protected:
     void InternalStart();
@@ -38,5 +39,6 @@ private:
 
     winrt::Windows::Graphics::Capture::Direct3D11CaptureFramePool m_framePool { nullptr };
     winrt::Windows::Graphics::Capture::GraphicsCaptureSession     m_session { nullptr };
+    HWND                                                          m_captureWindow { NULL };
 };
 } // namespace ShaderBeam

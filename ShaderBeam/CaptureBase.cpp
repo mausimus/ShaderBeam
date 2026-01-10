@@ -21,6 +21,24 @@ void CaptureBase::Start(winrt::com_ptr<IDXGIDevice> captureDevice, winrt::com_pt
     m_outputContext       = outputContext;
     m_stopping            = false;
     m_stagingCopyRequired = false;
+    m_windowX             = 0;
+    m_windowY             = 0;
+
+    if(m_options.captureWindow)
+    {
+        RECT captureRect;
+        if(DwmGetWindowAttribute(m_options.captureWindow, DWMWA_EXTENDED_FRAME_BOUNDS, &captureRect, sizeof(RECT)) == S_OK)
+        {
+            auto        monitor = MonitorFromWindow(m_options.captureWindow, MONITOR_DEFAULTTONEAREST);
+            MONITORINFO monitorInfo;
+            monitorInfo.cbSize = sizeof(monitorInfo);
+            if(GetMonitorInfo(monitor, &monitorInfo))
+            {
+                m_windowX = captureRect.left - monitorInfo.rcMonitor.left;
+                m_windowY = captureRect.top - monitorInfo.rcMonitor.top;
+            }
+        }
+    }
 
     InternalStart();
 }
@@ -121,7 +139,7 @@ void CaptureBase::CopyStagingToOutput(const winrt::com_ptr<ID3D11Texture2D>& out
 
 void CaptureBase::CopyTrimToOutputSize(ID3D11DeviceContext* context, ID3D11Texture2D* output, ID3D11Texture2D* source, int width, int height)
 {
-    if(width == m_options.outputWidth && height == m_options.outputHeight)
+    if(width == m_options.outputWidth && height == m_options.outputHeight && m_windowX == 0 && m_windowY == 0)
     {
         context->CopyResource(output, source);
     }
@@ -131,11 +149,11 @@ void CaptureBase::CopyTrimToOutputSize(ID3D11DeviceContext* context, ID3D11Textu
         D3D11_BOX box;
         box.left   = 0;
         box.top    = 0;
-        box.right  = min(m_options.outputWidth, (unsigned)width);
-        box.bottom = min(m_options.outputHeight, (unsigned)height);
+        box.right  = min(m_options.outputWidth - m_windowX, (unsigned)width);
+        box.bottom = min(m_options.outputHeight - m_windowY, (unsigned)height);
         box.front  = 0;
         box.back   = 1;
-        context->CopySubresourceRegion(output, 0, 0, 0, 0, source, 0, &box);
+        context->CopySubresourceRegion(output, 0, m_windowX, m_windowY, 0, source, 0, &box);
     }
 }
 
