@@ -10,7 +10,7 @@ MIT License
 namespace ShaderBeam
 {
 
-#define SHADERBEAM_TITLE "ShaderBeam v0.2"
+#define SHADERBEAM_TITLE "ShaderBeam v0.2 (wip)"
 
 #define MIN_SUBFRAMES 1
 #define MAX_SUBFRAMES 16
