@@ -20,11 +20,15 @@ check out its sister app [ShaderGlass](https://github.com/mausimus/ShaderGlass).
 
 ### Download
 
-First public release (v0.1, 28 Dec 2025) - [report feedback here](https://github.com/mausimus/ShaderBeam/discussions/2)
+Latest stable release (v0.1, 28 Dec 2025)
 
-https://github.com/mausimus/ShaderBeam/releases/download/v0.1/ShaderBeam-0.1-win-x64.zip
+* https://github.com/mausimus/ShaderBeam/releases/download/v0.1/ShaderBeam-0.1-win-x64.zip
 
-[Pre-release versions and betas here](https://github.com/mausimus/ShaderBeam/releases)
+Latest beta release (v0.2, 11 Jan 2026)
+
+* https://github.com/mausimus/ShaderBeam/releases/tag/v0.2-prerelease
+
+[Report feedback here](https://github.com/mausimus/ShaderBeam/discussions/2)
 
 > [!WARNING]
 > This app has the potential to create rapidly flashing images.
