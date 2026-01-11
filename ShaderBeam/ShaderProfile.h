@@ -26,6 +26,7 @@ public:
 
     void         ResetDefaults();
     virtual bool NewInputRequired(const RenderContext& renderContext) const;
+    virtual bool SupportsResync(const RenderContext& renderContext) const;
 
 protected:
     void Passthrough(const RenderContext& renderContext);

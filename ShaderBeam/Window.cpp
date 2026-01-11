@@ -187,6 +187,11 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
         s_shaderBeam.RunBenchmark();
         break;
     }
+    case WM_USER_NOWINDOW: {
+        s_shaderBeam.m_options.captureWindow = NULL;
+        PostMessage(hWnd, WM_USER_RESTART, 0, 0);
+        break;
+    }
     case WM_HOTKEY: {
         switch(wParam)
         {

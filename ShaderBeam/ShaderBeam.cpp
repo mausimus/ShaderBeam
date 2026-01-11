@@ -16,7 +16,7 @@ namespace ShaderBeam
 {
 
 ShaderBeam::ShaderBeam() :
-    m_options(), m_ui(m_options, m_shaderManager), m_watcher(m_ui), m_renderer(m_options, m_ui, m_watcher, m_shaderManager), m_renderThread(m_options, m_renderer)
+    m_options(), m_ui(m_options, m_shaderManager), m_watcher(m_ui), m_renderer(m_options, m_ui, m_watcher, m_shaderManager), m_renderThread(m_options, m_ui, m_renderer)
 { }
 
 void ShaderBeam::Create(HWND window)
@@ -43,8 +43,18 @@ void ShaderBeam::Create(HWND window)
     m_ui.m_monitorTypes.push_back("LCD");
     m_ui.m_monitorTypes.push_back("OLED");
 
+    m_ui.m_queuedFrames.push_back("Driver Default");
+    for(int i = 1; i <= 14; i++)
+        m_ui.m_queuedFrames.push_back(std::to_string(i));
+
+    m_ui.m_splitScreens.push_back("None");
+    m_ui.m_splitScreens.push_back("Vertical");
+    m_ui.m_splitScreens.push_back("Horizontal");
+
     timeBeginPeriod(1);
     Helpers::InitQPC();
+
+    m_options.Load(m_shaderManager);
 
     DefaultOptions();
 }
@@ -71,10 +81,8 @@ void ShaderBeam::UpdateVsyncRate()
     DWM_TIMING_INFO dwmInfo {};
     dwmInfo.cbSize = sizeof(dwmInfo);
     DwmGetCompositionTimingInfo(NULL, &dwmInfo);
-    m_options.vsyncDurationQpc = (unsigned)dwmInfo.qpcRefreshPeriod;
-
-    auto frameTime      = Helpers::QPCToDeltaMs(dwmInfo.qpcRefreshPeriod);
-    m_options.vsyncRate = 1000.0f / frameTime;
+    m_options.vsyncDuration = Helpers::QPCToDeltaMs(dwmInfo.qpcRefreshPeriod);
+    m_options.vsyncRate     = 1000.0f / m_options.vsyncDuration;
 }
 
 void ShaderBeam::DefaultOptions()
@@ -84,6 +92,23 @@ void ShaderBeam::DefaultOptions()
     m_options.subFrames = (int)roundf(m_options.vsyncRate / 60);
     if(m_options.subFrames <= 0)
         m_options.subFrames = 1;
+
+    if(m_options.captureAdapterNo >= m_ui.m_adapters.size())
+        m_options.captureAdapterNo = 0;
+    if(m_options.shaderAdapterNo >= m_ui.m_adapters.size())
+        m_options.shaderAdapterNo = 0;
+    if(m_options.captureDisplayNo >= m_ui.m_displays.size())
+        m_options.captureDisplayNo = 0;
+    if(m_options.shaderDisplayNo >= m_ui.m_displays.size())
+        m_options.shaderDisplayNo = 0;
+    if(m_options.monitorType >= m_ui.m_monitorTypes.size())
+        m_options.monitorType = 0;
+    if(m_options.captureMethod >= m_ui.m_captures.size())
+        m_options.captureMethod = 0;
+    if(m_options.splitScreen >= m_ui.m_splitScreens.size())
+        m_options.splitScreen = 0;
+    if(m_options.shaderProfileNo >= m_ui.m_shaders.size())
+        m_options.shaderProfileNo = 0;
 }
 
 void ShaderBeam::Start()
@@ -99,12 +124,19 @@ void ShaderBeam::Start()
     const auto& captureDisplay = m_ui.m_displays.at(m_options.captureDisplayNo);
     const auto& shaderDisplay  = m_ui.m_displays.at(m_options.shaderDisplayNo);
 
-    m_options.captureMonitor = captureDisplay.monitor;
-    m_options.outputWidth    = shaderDisplay.width;
-    m_options.outputHeight   = shaderDisplay.height;
+    m_options.captureMonitor   = captureDisplay.monitor;
+    m_options.outputWidth      = shaderDisplay.width;
+    m_options.outputHeight     = shaderDisplay.height;
+    m_options.swapChainBuffers = m_options.maxQueuedFrames ? m_options.maxQueuedFrames + 1 : 3;
+    m_options.format           = m_options.useHdr ? DXGI_FORMAT_R16G16B16A16_FLOAT : DXGI_FORMAT_B8G8R8A8_UNORM;
+    if(m_options.useHdr)
+        m_options.hardwareSrgb = false;
 
     winrt::com_ptr<ID3D11DeviceContext> deviceContext;
     shaderDevice->GetImmediateContext(deviceContext.put());
+    const auto& capture = m_ui.m_captures[m_options.captureMethod].api;
+    if(m_options.captureWindow && !capture->SupportsWindowCapture())
+        m_options.captureWindow = NULL;
 
     try
     {
@@ -131,7 +163,6 @@ void ShaderBeam::Start()
 
     m_watcher.Start();
 
-    const auto& capture = m_ui.m_captures[m_options.captureMethod].api;
     try
     {
         capture->Start(captureDevice.as<IDXGIDevice>(), deviceContext);
@@ -148,6 +179,8 @@ void ShaderBeam::Start()
 
 void ShaderBeam::Stop()
 {
+    m_options.Save(m_shaderManager);
+
     m_renderThread.Stop();
     m_ui.m_captures[m_options.captureMethod].api->Stop();
     m_watcher.Stop();
@@ -208,8 +241,8 @@ static BOOL CALLBACK EnumDisplayMonitorsProc(_In_ HMONITOR hMonitor, _In_ HDC hD
     unsigned w    = info.rcMonitor.right - info.rcMonitor.left;
     unsigned h    = info.rcMonitor.bottom - info.rcMonitor.top;
     unsigned no   = (unsigned)displays->size();
-    auto     name = std::string("#") + std::to_string(no + 1) + ": " + Helpers::WCharToString(info.szDevice);
-    displays->emplace_back(no, w, h, Helpers::WCharToString(info.szDevice), hMonitor);
+    auto     name = std::string("Desktop ") + std::to_string(no + 1);
+    displays->emplace_back(no, w, h, name, hMonitor);
     return true;
 }
 

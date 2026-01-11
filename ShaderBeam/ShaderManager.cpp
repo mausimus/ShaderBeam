@@ -48,9 +48,14 @@ std::vector<ShaderInfo> ShaderManager::GetShaders() const
     return shaders;
 }
 
+const std::vector<ParameterInfo>& ShaderManager::GetParameterInfos(int profileNo) const
+{
+    return m_shaderProfiles[profileNo]->m_parameterInfos;
+}
+
 const std::vector<ParameterInfo>& ShaderManager::GetParameterInfos() const
 {
-    return m_shaderProfiles[m_activeProfile]->m_parameterInfos;
+    return GetParameterInfos(m_activeProfile);
 }
 
 void ShaderManager::ResetDefaults()
@@ -66,6 +71,11 @@ int ShaderManager::NumInputsRequired()
 bool ShaderManager::NewInputRequired(const RenderContext& renderContext) const
 {
     return m_shaderProfiles[m_activeProfile]->NewInputRequired(renderContext);
+}
+
+bool ShaderManager::SupportsResync(const RenderContext& renderContext) const
+{
+    return m_shaderProfiles[m_activeProfile]->SupportsResync(renderContext);
 }
 
 } // namespace ShaderBeam

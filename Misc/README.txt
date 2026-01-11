@@ -1,5 +1,5 @@
-ShaderBeam v0.1
-(c) 2025 mausimus
+ShaderBeam v0.2
+(c) 2025-2026 mausimus
 Overlay for running BFI/CRT Beam Simulation shaders on top of Windows desktop
 https://github.com/mausimus/ShaderBeam
 

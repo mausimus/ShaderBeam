@@ -143,3 +143,4 @@ ShaderBeam incorporates the following software under MIT License:
 * [Blur Busters CRT Beam Simulator](https://github.com/blurbusters/crt-beam-simulator) Copyright (c) 2024 Mark Rejhon & Timothy Lottes
 * [Dear ImGui](https://github.com/ocornut/imgui) Copyright (c) 2014-2025 Omar Cornut
 * [Proggy Vector Font](https://github.com/bluescan/proggyfonts) Copyright (c) 2004, 2005 Tristan Grimmer
+* [mINI](https://github.com/metayeti/mINI) Copyright (c) 2018 Danijel Durakovic

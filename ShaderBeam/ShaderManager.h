@@ -22,10 +22,12 @@ public:
     void Destroy();
 
     std::vector<ShaderInfo>           GetShaders() const;
+    const std::vector<ParameterInfo>& GetParameterInfos(int profileNo) const;
     const std::vector<ParameterInfo>& GetParameterInfos() const;
     void                              ResetDefaults();
     int                               NumInputsRequired();
     bool                              NewInputRequired(const RenderContext& renderContext) const;
+    bool                              SupportsResync(const RenderContext& renderContext) const;
 
 private:
     int                       m_activeProfile { 0 };
