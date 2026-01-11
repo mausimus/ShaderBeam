@@ -42,7 +42,9 @@ public:
     std::vector<ShaderInfo>  m_shaders;
     std::vector<CaptureInfo> m_captures;
     std::vector<std::string> m_monitorTypes;
-    std::vector<WindowInfo>  m_windows;
+    std::vector<InputInfo>   m_inputs;
+    std::vector<std::string> m_queuedFrames;
+    std::vector<std::string> m_splitScreens;
 
 private:
     void SetStyle(ImGuiStyle& style);
@@ -60,11 +62,11 @@ private:
         HWND captureWindow;
         int  shaderDisplayNo;
         int  subFrames;
-        int  hardwareSrgb;
+        bool hardwareSrgb;
         int  captureMethod;
         int  splitScreen;
         int  monitorType;
-        int  autoSyncInterval;
+        bool autoSync;
         int  maxQueuedFrames;
     } m_pending;
 

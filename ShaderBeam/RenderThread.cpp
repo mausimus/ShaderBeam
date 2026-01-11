@@ -54,11 +54,11 @@ void RenderThread::PollCapture()
 #else
     bool newFrame = m_capture->Poll(m_renderer.GetNextInput());
     m_renderer.RollInput(newFrame);
-    if(newFrame && m_options.autoSyncInterval && m_renderer.SupportsResync())
+    if(newFrame && m_options.autoSync && m_renderer.SupportsResync())
     {
         if(m_nextResync-- == 0)
         {
-            m_nextResync = (int)(m_options.autoSyncInterval * m_options.vsyncRate / m_options.subFrames);
+            m_nextResync = (int)(AUTOSYNC_INTERVAL * m_options.vsyncRate / m_options.subFrames);
             if(m_ui.m_captureLag > m_options.vsyncDuration)
             {
                 // we receive frames older than one display frame; skip output frames until we're in sync

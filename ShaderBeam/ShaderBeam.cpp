@@ -43,6 +43,14 @@ void ShaderBeam::Create(HWND window)
     m_ui.m_monitorTypes.push_back("LCD");
     m_ui.m_monitorTypes.push_back("OLED");
 
+    m_ui.m_queuedFrames.push_back("Driver Default");
+    for(int i = 1; i <= 14; i++)
+        m_ui.m_queuedFrames.push_back(std::to_string(i));
+
+    m_ui.m_splitScreens.push_back("None");
+    m_ui.m_splitScreens.push_back("Vertical");
+    m_ui.m_splitScreens.push_back("Horizontal");
+
     timeBeginPeriod(1);
     Helpers::InitQPC();
 
@@ -97,9 +105,10 @@ void ShaderBeam::Start()
     const auto& captureDisplay = m_ui.m_displays.at(m_options.captureDisplayNo);
     const auto& shaderDisplay  = m_ui.m_displays.at(m_options.shaderDisplayNo);
 
-    m_options.captureMonitor = captureDisplay.monitor;
-    m_options.outputWidth    = shaderDisplay.width;
-    m_options.outputHeight   = shaderDisplay.height;
+    m_options.captureMonitor   = captureDisplay.monitor;
+    m_options.outputWidth      = shaderDisplay.width;
+    m_options.outputHeight     = shaderDisplay.height;
+    m_options.swapChainBuffers = m_options.maxQueuedFrames ? m_options.maxQueuedFrames + 1 : 3;
 
     winrt::com_ptr<ID3D11DeviceContext> deviceContext;
     shaderDevice->GetImmediateContext(deviceContext.put());
@@ -208,8 +217,8 @@ static BOOL CALLBACK EnumDisplayMonitorsProc(_In_ HMONITOR hMonitor, _In_ HDC hD
     unsigned w    = info.rcMonitor.right - info.rcMonitor.left;
     unsigned h    = info.rcMonitor.bottom - info.rcMonitor.top;
     unsigned no   = (unsigned)displays->size();
-    auto     name = std::string("#") + std::to_string(no + 1) + ": " + Helpers::WCharToString(info.szDevice);
-    displays->emplace_back(no, w, h, Helpers::WCharToString(info.szDevice), hMonitor);
+    auto     name = std::string("Desktop ") + std::to_string(no + 1);
+    displays->emplace_back(no, w, h, name, hMonitor);
     return true;
 }
 

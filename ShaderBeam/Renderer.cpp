@@ -192,7 +192,7 @@ void Renderer::Create()
     d3d11SwapChainDesc.Scaling               = DXGI_SCALING_NONE;
     d3d11SwapChainDesc.SwapEffect            = DXGI_SWAP_EFFECT_FLIP_DISCARD;
     d3d11SwapChainDesc.AlphaMode             = DXGI_ALPHA_MODE_UNSPECIFIED;
-    d3d11SwapChainDesc.Flags                 = !m_options.exclusive && m_options.maxQueuedFrames ? DXGI_SWAP_CHAIN_FLAG_FRAME_LATENCY_WAITABLE_OBJECT : 0;
+    d3d11SwapChainDesc.Flags                 = 0;
     // fun fact: on Intel Arc setting DXGI_SWAP_CHAIN_FLAG_FRAME_LATENCY_WAITABLE_OBJECT
     // makes Present(1) not wait on vsync any more and BSODs Windows
 
@@ -212,12 +212,6 @@ void Renderer::Create()
         THROW(m_swapChain->SetFullscreenState(TRUE, output.get()), "Unable to set fullscreen");
 
         THROW(m_swapChain->ResizeBuffers(d3d11SwapChainDesc.BufferCount, m_options.outputWidth, m_options.outputHeight, DXGI_FORMAT_B8G8R8A8_UNORM, 0), "Unable to resize buffers");
-    }
-
-    if(!m_options.exclusive && m_options.maxQueuedFrames)
-    {
-        auto swapChain2 = m_swapChain.as<IDXGISwapChain2>();
-        THROW(swapChain2->SetMaximumFrameLatency(m_options.maxQueuedFrames), "Unable to set frame latency");
     }
 
     THROW(m_swapChain->GetBuffer(0, __uuidof(ID3D11Texture2D), (void**)m_renderContext.outputTexture.put()), "Unable to get display buffer");

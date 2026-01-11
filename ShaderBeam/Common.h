@@ -15,6 +15,7 @@ namespace ShaderBeam
 #define MIN_SUBFRAMES 1
 #define MAX_SUBFRAMES 16
 #define MAX_INPUTS 5
+#define AUTOSYNC_INTERVAL 2
 
 #define WM_USER_RESTART (WM_USER)
 #define WM_USER_BENCHMARK (WM_USER + 1)
@@ -88,11 +89,13 @@ struct ParameterInfo
     } p;
 };
 
-struct WindowInfo
+struct InputInfo
 {
     HWND        hwnd;
     std::string name;
     bool        fullscreen;
+    unsigned    captureMethod;
+    unsigned    captureDisplayNo;
 };
 
 class CaptureBase;
@@ -121,13 +124,12 @@ struct Options
     int  subFrames { 0 };
     int  captureMethod { 0 };
     int  splitScreen { 0 };
-    int  hardwareSrgb { 0 };
+    bool hardwareSrgb { false };
     int  monitorType { MONITOR_LCD };
-    int  autoSyncInterval { 2 };
+    bool autoSync { true };
 
     // internal options
     bool     exclusive { false };
-    unsigned swapChainBuffers { 3 };
     unsigned maxQueuedFrames { 0 };
     unsigned wgcBuffers { 16 };
     unsigned gpuThreadPriority { 29 };
@@ -140,6 +142,7 @@ struct Options
     unsigned outputHeight { 0 };
     float    vsyncDuration { 0 };
     float    vsyncRate { 0 };
+    unsigned swapChainBuffers { 0 };
     bool     crossAdapter { false };
 };
 }; // namespace ShaderBeam
