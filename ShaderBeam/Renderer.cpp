@@ -184,7 +184,7 @@ void Renderer::Create()
     DXGI_SWAP_CHAIN_DESC1 d3d11SwapChainDesc = {};
     d3d11SwapChainDesc.Width                 = 0;
     d3d11SwapChainDesc.Height                = 0;
-    d3d11SwapChainDesc.Format                = DXGI_FORMAT_B8G8R8A8_UNORM;
+    d3d11SwapChainDesc.Format                = m_options.format;
     d3d11SwapChainDesc.SampleDesc.Count      = 1;
     d3d11SwapChainDesc.SampleDesc.Quality    = 0;
     d3d11SwapChainDesc.BufferUsage           = DXGI_USAGE_RENDER_TARGET_OUTPUT;
@@ -211,18 +211,25 @@ void Renderer::Create()
 
         THROW(m_swapChain->SetFullscreenState(TRUE, output.get()), "Unable to set fullscreen");
 
-        THROW(m_swapChain->ResizeBuffers(d3d11SwapChainDesc.BufferCount, m_options.outputWidth, m_options.outputHeight, DXGI_FORMAT_B8G8R8A8_UNORM, 0), "Unable to resize buffers");
+        THROW(m_swapChain->ResizeBuffers(d3d11SwapChainDesc.BufferCount, m_options.outputWidth, m_options.outputHeight, m_options.format, 0), "Unable to resize buffers");
+    }
+
+    if(m_options.useHdr)
+    {
+        winrt::com_ptr<IDXGISwapChain3> swapChain3;
+        THROW(m_swapChain->QueryInterface(__uuidof(IDXGISwapChain3), reinterpret_cast<void**>(swapChain3.put())), "Unable to get SwapChain3");
+        THROW(swapChain3->SetColorSpace1(DXGI_COLOR_SPACE_RGB_FULL_G10_NONE_P709), "Unable to set HDR ColorSpace");
     }
 
     THROW(m_swapChain->GetBuffer(0, __uuidof(ID3D11Texture2D), (void**)m_renderContext.outputTexture.put()), "Unable to get display buffer");
 
     D3D11_RENDER_TARGET_VIEW_DESC rtv {};
-    rtv.Format        = m_options.hardwareSrgb ? DXGI_FORMAT_B8G8R8A8_UNORM_SRGB : DXGI_FORMAT_B8G8R8A8_UNORM;
+    rtv.Format        = m_options.hardwareSrgb ? DXGI_FORMAT_B8G8R8A8_UNORM_SRGB : m_options.format;
     rtv.ViewDimension = D3D11_RTV_DIMENSION_TEXTURE2D;
     THROW(m_renderContext.device->CreateRenderTargetView(m_renderContext.outputTexture.get(), &rtv, m_renderContext.outputTargetView.put()), "Unable to create render target");
 
     D3D11_RENDER_TARGET_VIEW_DESC uitv {};
-    uitv.Format        = DXGI_FORMAT_B8G8R8A8_UNORM;
+    uitv.Format        = m_options.format;
     uitv.ViewDimension = D3D11_RTV_DIMENSION_TEXTURE2D;
     THROW(m_renderContext.device->CreateRenderTargetView(m_renderContext.outputTexture.get(), &uitv, m_uiTargetView.put()), "Unable to create render target");
 
@@ -264,7 +271,7 @@ void Renderer::CreateInputs()
     desc.Width              = m_options.outputWidth;
     desc.Height             = m_options.outputHeight;
     desc.ArraySize          = 1;
-    desc.Format             = m_options.hardwareSrgb ? DXGI_FORMAT_B8G8R8A8_UNORM_SRGB : DXGI_FORMAT_B8G8R8A8_UNORM;
+    desc.Format             = m_options.hardwareSrgb ? DXGI_FORMAT_B8G8R8A8_UNORM_SRGB : m_options.format;
     desc.SampleDesc.Count   = 1;
     desc.SampleDesc.Quality = 0;
     desc.MipLevels          = 1;
@@ -274,11 +281,12 @@ void Renderer::CreateInputs()
     desc.BindFlags          = D3D11_BIND_SHADER_RESOURCE;
 
     D3D11_SUBRESOURCE_DATA data {};
+    auto                   formatWidth = m_options.useHdr ? 2 : 1;
     std::vector<uint32_t>  initialData;
-    initialData.resize(m_options.outputWidth * m_options.outputHeight);
+    initialData.resize(m_options.outputWidth * m_options.outputHeight * formatWidth);
     data.pSysMem          = initialData.data();
-    data.SysMemPitch      = m_options.outputWidth * sizeof(uint32_t);
-    data.SysMemSlicePitch = m_options.outputWidth * m_options.outputHeight * sizeof(uint32_t);
+    data.SysMemPitch      = m_options.outputWidth * sizeof(uint32_t) * formatWidth;
+    data.SysMemSlicePitch = m_options.outputWidth * m_options.outputHeight * sizeof(uint32_t) * formatWidth;
     for(int i = 0; i < inputsRequired; i++)
     {
 #ifdef RGB_TEST

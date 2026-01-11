@@ -68,6 +68,7 @@ private:
         int  monitorType;
         bool autoSync;
         int  maxQueuedFrames;
+        bool useHdr;
     } m_pending;
 
     ImFont*        m_smallFont;

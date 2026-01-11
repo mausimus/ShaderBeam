@@ -404,6 +404,12 @@ void UI::Render()
             }
             ShowHelpMarker("Reduces shader cost up to ~30% but with some quality loss and inability to adjust gamma (fixed at ~2.2). For slow iGPUs only.");
 
+            ImGui::SameLine();
+            if(ImGui::Checkbox("HDR", &m_pending.useHdr))
+            {
+                SetApplyRequired();
+            }
+
             bool applyRequired = m_applyRequired;
             if(applyRequired)
             {
@@ -620,6 +626,7 @@ void UI::ClearPendingChanges()
     m_pending.monitorType      = m_options.monitorType;
     m_pending.autoSync         = m_options.autoSync;
     m_pending.maxQueuedFrames  = m_options.maxQueuedFrames;
+    m_pending.useHdr           = m_options.useHdr;
 }
 
 void UI::ApplyPendingChanges()
@@ -636,6 +643,7 @@ void UI::ApplyPendingChanges()
     m_options.monitorType      = m_pending.monitorType;
     m_options.autoSync         = m_pending.autoSync;
     m_options.maxQueuedFrames  = m_pending.maxQueuedFrames;
+    m_options.useHdr           = m_pending.useHdr;
 }
 
 void UI::SetBenchmark(float fps)

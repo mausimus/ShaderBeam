@@ -109,6 +109,9 @@ void ShaderBeam::Start()
     m_options.outputWidth      = shaderDisplay.width;
     m_options.outputHeight     = shaderDisplay.height;
     m_options.swapChainBuffers = m_options.maxQueuedFrames ? m_options.maxQueuedFrames + 1 : 3;
+    m_options.format           = m_options.useHdr ? DXGI_FORMAT_R16G16B16A16_FLOAT : DXGI_FORMAT_B8G8R8A8_UNORM;
+    if(m_options.useHdr)
+        m_options.hardwareSrgb = false;
 
     winrt::com_ptr<ID3D11DeviceContext> deviceContext;
     shaderDevice->GetImmediateContext(deviceContext.put());

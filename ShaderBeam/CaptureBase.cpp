@@ -92,7 +92,7 @@ void CaptureBase::CopyToOutput(const winrt::com_ptr<ID3D11Texture2D>& capturedFr
             stagingDesc.Width              = m_options.outputWidth;
             stagingDesc.Height             = m_options.outputHeight;
             stagingDesc.ArraySize          = 1;
-            stagingDesc.Format             = DXGI_FORMAT_B8G8R8A8_UNORM;
+            stagingDesc.Format             = m_options.format;
             stagingDesc.SampleDesc.Count   = 1;
             stagingDesc.SampleDesc.Quality = 0;
             stagingDesc.MipLevels          = 1;

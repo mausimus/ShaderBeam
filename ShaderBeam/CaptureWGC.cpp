@@ -46,7 +46,8 @@ void CaptureWGC::InternalStart()
         m_captureWindow = NULL;
     }
 
-    auto format      = winrt::Windows::Graphics::DirectX::DirectXPixelFormat::B8G8R8A8UIntNormalized;
+    auto format =
+        m_options.useHdr ? winrt::Windows::Graphics::DirectX::DirectXPixelFormat::R16G16B16A16Float : winrt::Windows::Graphics::DirectX::DirectXPixelFormat::B8G8R8A8UIntNormalized;
     auto contentSize = item.Size();
 
     m_framePool = winrt::Windows::Graphics::Capture::Direct3D11CaptureFramePool::Create(CreateDirect3DDevice(m_captureDevice.get()), format, m_options.wgcBuffers, contentSize);

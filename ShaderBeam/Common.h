@@ -127,6 +127,7 @@ struct Options
     bool hardwareSrgb { false };
     int  monitorType { MONITOR_LCD };
     bool autoSync { true };
+    bool useHdr { false };
 
     // internal options
     bool     exclusive { false };
@@ -135,14 +136,15 @@ struct Options
     unsigned gpuThreadPriority { 29 };
 
     // derived
-    HWND     outputWindow { 0 };
-    HMONITOR captureMonitor { 0 };
-    HWND     captureWindow { 0 };
-    unsigned outputWidth { 0 };
-    unsigned outputHeight { 0 };
-    float    vsyncDuration { 0 };
-    float    vsyncRate { 0 };
-    unsigned swapChainBuffers { 0 };
-    bool     crossAdapter { false };
+    HWND        outputWindow { 0 };
+    HMONITOR    captureMonitor { 0 };
+    HWND        captureWindow { 0 };
+    unsigned    outputWidth { 0 };
+    unsigned    outputHeight { 0 };
+    float       vsyncDuration { 0 };
+    float       vsyncRate { 0 };
+    unsigned    swapChainBuffers { 0 };
+    bool        crossAdapter { false };
+    DXGI_FORMAT format { DXGI_FORMAT_B8G8R8A8_UNORM };
 };
-}; // namespace ShaderBeam
+} // namespace ShaderBeam
