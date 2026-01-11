@@ -391,7 +391,7 @@ void UI::Render()
                 }
                 ImGui::EndCombo();
             }
-            ShowHelpMarker("Queued presentation frames, trade-off between input latency and stability. These are output (Display Hz) frames.");
+            ShowHelpMarker("Queued presentation frames, trade-off between input latency and stability. These are output (Display Hz) frames. Driver default is usually 3.");
 
             if(ImGui::Checkbox("Auto-Sync", &m_pending.autoSync))
             {
