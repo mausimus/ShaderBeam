@@ -54,6 +54,8 @@ void ShaderBeam::Create(HWND window)
     timeBeginPeriod(1);
     Helpers::InitQPC();
 
+    m_options.Load(m_shaderManager);
+
     DefaultOptions();
 }
 
@@ -90,6 +92,23 @@ void ShaderBeam::DefaultOptions()
     m_options.subFrames = (int)roundf(m_options.vsyncRate / 60);
     if(m_options.subFrames <= 0)
         m_options.subFrames = 1;
+
+    if(m_options.captureAdapterNo >= m_ui.m_adapters.size())
+        m_options.captureAdapterNo = 0;
+    if(m_options.shaderAdapterNo >= m_ui.m_adapters.size())
+        m_options.shaderAdapterNo = 0;
+    if(m_options.captureDisplayNo >= m_ui.m_displays.size())
+        m_options.captureDisplayNo = 0;
+    if(m_options.shaderDisplayNo >= m_ui.m_displays.size())
+        m_options.shaderDisplayNo = 0;
+    if(m_options.monitorType >= m_ui.m_monitorTypes.size())
+        m_options.monitorType = 0;
+    if(m_options.captureMethod >= m_ui.m_captures.size())
+        m_options.captureMethod = 0;
+    if(m_options.splitScreen >= m_ui.m_splitScreens.size())
+        m_options.splitScreen = 0;
+    if(m_options.shaderProfileNo >= m_ui.m_shaders.size())
+        m_options.shaderProfileNo = 0;
 }
 
 void ShaderBeam::Start()
@@ -160,6 +179,8 @@ void ShaderBeam::Start()
 
 void ShaderBeam::Stop()
 {
+    m_options.Save(m_shaderManager);
+
     m_renderThread.Stop();
     m_ui.m_captures[m_options.captureMethod].api->Stop();
     m_watcher.Stop();

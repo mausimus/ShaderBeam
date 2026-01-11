@@ -10,7 +10,7 @@ MIT License
 namespace ShaderBeam
 {
 
-#define SHADERBEAM_TITLE "ShaderBeam v0.2 (wip)"
+#define SHADERBEAM_TITLE "ShaderBeam v0.2 (prerelease)"
 
 #define MIN_SUBFRAMES 1
 #define MAX_SUBFRAMES 16
@@ -110,6 +110,8 @@ struct CaptureInfo
 constexpr int MONITOR_LCD  = 0;
 constexpr int MONITOR_OLED = 1;
 
+class ShaderManager;
+
 struct Options
 {
     // UI options
@@ -128,10 +130,11 @@ struct Options
     int  monitorType { MONITOR_LCD };
     bool autoSync { true };
     bool useHdr { false };
+    int  maxQueuedFrames { 0 };
+    bool rememberSettings { true };
 
     // internal options
     bool     exclusive { false };
-    unsigned maxQueuedFrames { 0 };
     unsigned wgcBuffers { 16 };
     unsigned gpuThreadPriority { 29 };
 
@@ -146,5 +149,8 @@ struct Options
     unsigned    swapChainBuffers { 0 };
     bool        crossAdapter { false };
     DXGI_FORMAT format { DXGI_FORMAT_B8G8R8A8_UNORM };
+
+    void Save(const ShaderManager& shaderManager) const;
+    void Load(ShaderManager& shaderManager);
 };
 } // namespace ShaderBeam

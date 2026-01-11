@@ -153,7 +153,7 @@ void UI::Render()
     {
         auto viewport = ImGui::GetMainViewport()->Size;
 
-        ImVec2 mainWindowSize(36 * m_fontSize, 47 * m_fontSize);
+        ImVec2 mainWindowSize(36 * m_fontSize, 41 * m_fontSize);
         ImVec2 mainWindowPos(2 * m_fontSize, (viewport.y - mainWindowSize.y) / 2.0f);
         if(mainWindowPos.y < 0)
             mainWindowPos.y = 0;
@@ -234,8 +234,10 @@ void UI::Render()
             ImGui::Text("                    Captured FPS: %7.02f", m_inputFPS);
             ShowHelpMarker("Provided by capture API.\nCan vary, ideally should be same as Content FPS (if it's higher, frame-limit your game to Content FPS using RTSS).");
 
+#ifdef _DEBUG2
             ImGui::Text("Capture Lag: %7.02f ms", m_captureLag);
-            ShowHelpMarker("Time reported by Windows Capture.");
+            ShowHelpMarker("As reported by Windows Capture.");
+#endif
 
             ImGui::SeparatorText("Render Parameters");
 
@@ -427,6 +429,8 @@ void UI::Render()
             {
                 ImGui::PopStyleColor(3);
             }
+            ImGui::SameLine();
+            ImGui::Checkbox("Remember", &m_options.rememberSettings);
 
             //////////////////////////////////////////
 
@@ -487,9 +491,11 @@ void UI::Render()
                 m_hasBenchmark = false;
                 ImGui::OpenPopup("Benchmark");
             }
+            ImGui::SetNextWindowSize(ImVec2(25 * m_fontSize, 10 * m_fontSize), ImGuiCond_Always);
             if(ImGui::BeginPopupModal("Benchmark"))
             {
-                ImGui::Text("Shader GPU benchmark result:\n%.0f FPS", m_benchmarkFPS);
+                ImGui::Text("Shader GPU benchmark result: %.0f FPS\n\n", m_benchmarkFPS);
+                ImGui::Text("The benchmark doesn't account for\nbandwidth between GPUs.\nActual max FPS will be lower.", m_benchmarkFPS);
                 if(ImGui::Button("Close"))
                 {
                     ImGui::CloseCurrentPopup();
