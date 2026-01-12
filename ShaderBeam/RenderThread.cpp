@@ -59,7 +59,7 @@ void RenderThread::PollCapture()
         if(m_nextResync-- == 0)
         {
             m_nextResync = (int)(AUTOSYNC_INTERVAL * m_options.vsyncRate / m_options.subFrames);
-            if(m_ui.m_captureLag > m_options.vsyncDuration)
+            if(m_ui.m_captureLag > m_options.vsyncDuration && m_ui.m_inputFPS < m_ui.m_outputFPS * 0.75f)
             {
                 // we receive frames older than one display frame; skip output frames until we're in sync
                 auto laggedFrames = (int)floorf(m_ui.m_captureLag / m_options.vsyncDuration);

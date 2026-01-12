@@ -40,6 +40,12 @@ public:
     // derived
     float m_framesPerHz { 4.0f };
 
+    const std::map<int, std::string> m_scanDirections = {
+        { 0, "None (Global Refresh)" }, { 1, "Top to Bottom" }, { 2, "Bottom to Top" }, { 3, "Left to Right" }, { 4, "Right to Left" }
+    };
+
+    const std::map<int, std::string> m_lcdAntiRetentions = { { 0, "Force Off" }, { 1, "Auto" } };
+
     CRTBeamSimulatorShader()
     {
         m_numInputs = 3;
@@ -55,16 +61,13 @@ public:
                      1.0f);
         AddParameter("Scan Direction",
                      "CRT SCAN DIRECTION. Can be useful to counteract an OS rotation of your display\n"
-                     "- 0 none\n"
-                     "- 1 default (top to bottom), recommended\n"
-                     "- 2 reverse (bottom to top)\n"
-                     "- 3 portrait (left to right)\n"
-                     "- 4 reverse portrait (right to left)",
+                     "'None' helps remove banding, but may reduce visual quality especially on OLEDs.",
                      &m_params.scanDirection,
                      0,
-                     4);
+                     4,
+                     m_scanDirections);
         // NB: this is inverted compared to original shader to be more user-friendly
-        AddParameter("FPS Divisor",
+        AddParameter("Slow Motion Mode",
                      "Reduced frame rate mode\n"
                      "- This can be helpful to see individual CRT-simulated frames better (educational!)\n"
                      "- 1.0 is framerate=Hz, 2.0 is framerate being half of Hz, 10 is framerate being 10% of real Hz.\n",
@@ -74,10 +77,11 @@ public:
         AddParameter("LCD Anti-retention",
                      "Prevents image retention from BFI interfering with LCD voltage polarity inversion algorithm\n"
                      "- It will cause occasional stutter as it desyncs CRT refresh rate from content refresh rate.\n"
-                     "- Switch this off if you have an OLED as it's only needed for LCDs.",
+                     "- Auto-disabled on OLEDs and LCDs with even subframe count.",
                      &m_lcdAntiRetention,
                      0,
-                     1);
+                     1,
+                     m_lcdAntiRetentions);
         AddParameter("LCD Inversion Compensation",
                      "Strength of LCD Anti-retention\n"
                      "- 0.001 - Normal\n"

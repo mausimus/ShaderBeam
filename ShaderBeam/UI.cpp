@@ -411,6 +411,7 @@ void UI::Render()
             {
                 SetApplyRequired();
             }
+            ShowHelpMarker("Only partially supported, results may vary.");
 
             bool applyRequired = m_applyRequired;
             if(applyRequired)
@@ -466,9 +467,32 @@ void UI::Render()
                 case ParameterType::ParamFloat:
                     ImGui::SliderFloat(p.name.c_str(), p.p.fp.value, p.p.fp.min, p.p.fp.max);
                     break;
-                case ParameterType::ParamInt:
-                    ImGui::SliderInt(p.name.c_str(), p.p.ip.value, p.p.ip.min, p.p.ip.max);
-                    break;
+                case ParameterType::ParamInt: {
+                    if(p.dropdown.size())
+                    {
+                        if(ImGui::BeginCombo(p.name.c_str(), p.dropdown.at(*p.p.ip.value).c_str(), 0))
+                        {
+                            for(const auto& option : p.dropdown)
+                            {
+                                auto selected = option.first == *p.p.ip.value;
+                                if(ImGui::Selectable(option.second.c_str(), selected))
+                                {
+                                    *p.p.ip.value = option.first;
+                                }
+                                if(selected)
+                                {
+                                    ImGui::SetItemDefaultFocus();
+                                }
+                            }
+                            ImGui::EndCombo();
+                        }
+                    }
+                    else
+                    {
+                        ImGui::SliderInt(p.name.c_str(), p.p.ip.value, p.p.ip.min, p.p.ip.max);
+                    }
+                }
+                break;
                 default:
                     abort();
                 }

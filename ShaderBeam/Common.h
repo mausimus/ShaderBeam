@@ -66,10 +66,11 @@ enum ParameterType
 
 struct ParameterInfo
 {
-    unsigned      no;
-    std::string   name;
-    std::string   hint;
-    ParameterType type;
+    unsigned                          no;
+    std::string                       name;
+    std::string                       hint;
+    ParameterType                     type;
+    const std::map<int, std::string>& dropdown;
     union
     {
         struct
