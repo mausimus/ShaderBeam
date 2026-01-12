@@ -513,12 +513,18 @@ void UI::Render()
             if(m_hasBenchmark)
             {
                 m_hasBenchmark = false;
-                ImGui::OpenPopup("Benchmark");
+                ImGui::OpenPopup("Benchmark Result");
             }
-            ImGui::SetNextWindowSize(ImVec2(20 * m_fontSize, 6 * m_fontSize), ImGuiCond_Always);
-            if(ImGui::BeginPopupModal("Benchmark"))
+            ImGui::SetNextWindowSize(ImVec2(16 * m_fontSize, 12 * m_fontSize), ImGuiCond_Always);
+            if(ImGui::BeginPopupModal("Benchmark Result"))
             {
-                ImGui::Text("Benchmark result: %.0f FPS\n\n", m_benchmarkFPS);
+                if(m_benchmarkResult.copyFPS != 0)
+                    ImGui::Text("      Copy FPS: %8.0f\n", m_benchmarkResult.copyFPS);
+                ImGui::Text("    Shader FPS: %8.0f\n", m_benchmarkResult.renderFPS);
+                ImGui::Text("   Present FPS: %8.0f\n", m_benchmarkResult.presentFPS);
+                ImGui::Text(" -------------------------\n");
+                ImGui::Text("  Combined FPS: %8.0f\n\n", m_benchmarkResult.totalFPS);
+
                 if(ImGui::Button("Close"))
                 {
                     ImGui::CloseCurrentPopup();
@@ -675,10 +681,10 @@ void UI::ApplyPendingChanges()
     m_options.useHdr           = m_pending.useHdr;
 }
 
-void UI::SetBenchmark(float fps)
+void UI::SetBenchmark(const BenchmarkResult& result)
 {
-    m_benchmarkFPS = fps;
-    m_hasBenchmark = true;
+    m_benchmarkResult = result;
+    m_hasBenchmark    = true;
 }
 
 void UI::SetError(const char* message)

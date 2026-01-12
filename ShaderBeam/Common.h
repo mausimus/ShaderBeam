@@ -108,6 +108,14 @@ struct CaptureInfo
     std::shared_ptr<CaptureBase> api;
 };
 
+struct BenchmarkResult
+{
+    float totalFPS { 0 };
+    float copyFPS { 0 };
+    float renderFPS { 0 };
+    float presentFPS { 0 };
+};
+
 constexpr int MONITOR_LCD  = 0;
 constexpr int MONITOR_OLED = 1;
 

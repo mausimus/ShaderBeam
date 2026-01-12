@@ -148,22 +148,48 @@ void Renderer::Skip(int numFrames)
 
 void Renderer::Benchmark(const std::shared_ptr<CaptureBase>& capture)
 {
-    const float benchmarkDuration = 2 * TICKS_PER_SEC;
+    const float benchmarkDuration = 4 * TICKS_PER_SEC;
 
-    auto  input  = GetNextInput();
-    auto  start  = Helpers::GetTicks();
-    float end    = start;
-    int   frames = 0;
+    auto  input       = GetNextInput();
+    auto  start       = Helpers::GetTicks();
+    float copyTime    = 0.0f;
+    float renderTime  = 0.0f;
+    float presentTime = 0.0f;
+    float now         = start;
+    float prev        = now;
+    int   frames      = 0;
     do
     {
-        if(frames % m_options.subFrames == 0)
+        auto pctComplete           = (now - start) / benchmarkDuration;
+        m_renderContext.subFrameNo = ((int)(m_options.subFrames * pctComplete)) % m_options.subFrames;
+        if(m_options.crossAdapter && (frames % m_options.subFrames == 0))
+        {
             capture->BenchmarkCopy(input);
+            m_renderContext.deviceContext->Flush();
+            auto now = Helpers::GetTicks();
+            copyTime += now - prev;
+            prev = now;
+        }
+
         Render(false, false);
+        m_renderContext.deviceContext->Flush();
+        now = Helpers::GetTicks();
+        renderTime += now - prev;
+        prev = now;
+
         Present(false);
         frames++;
-        end = Helpers::GetTicks();
-    } while(end < start + benchmarkDuration);
-    m_ui.SetBenchmark(end != start ? frames / ((end - start) / TICKS_PER_SEC) : 0);
+        now = Helpers::GetTicks();
+        presentTime += now - prev;
+        prev = now;
+    } while(now < start + benchmarkDuration);
+    auto totalTime = now - start;
+    m_ui.SetBenchmark({
+        .totalFPS   = totalTime != 0 ? frames / (totalTime / TICKS_PER_SEC) : 0,
+        .copyFPS    = copyTime != 0 ? frames / (copyTime / TICKS_PER_SEC) : 0,
+        .renderFPS  = renderTime != 0 ? frames / (renderTime / TICKS_PER_SEC) : 0,
+        .presentFPS = presentTime != 0 ? frames / (presentTime / TICKS_PER_SEC) : 0,
+    });
 }
 
 void Renderer::Create()

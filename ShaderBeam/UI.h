@@ -27,8 +27,8 @@ public:
     void Render();
     void Stop();
 
-    void SetBenchmark(float fps);
     void SetError(const char* message);
+    void SetBenchmark(const BenchmarkResult& result);
     void AddWindow(HWND hWnd);
     bool RenderRequired() const;
     bool Toggle();
@@ -71,19 +71,19 @@ private:
         bool useHdr;
     } m_pending;
 
-    ImFont*        m_smallFont;
-    ImFont*        m_largeFont;
-    Options&       m_options;
-    ShaderManager& m_shaderManager;
-    bool           m_ready { false };
-    bool           m_applyRequired { false };
-    float          m_fontSize { 0 };
-    const char*    m_captureGPUs { nullptr };
-    const char*    m_renderGPUs { nullptr };
-    bool           m_hasBenchmark { false };
-    float          m_benchmarkFPS { 0 };
-    std::string    m_captureWindowName;
-    bool           m_hasError { false };
-    std::string    m_errorMessage;
+    ImFont*         m_smallFont;
+    ImFont*         m_largeFont;
+    Options&        m_options;
+    ShaderManager&  m_shaderManager;
+    bool            m_ready { false };
+    bool            m_applyRequired { false };
+    float           m_fontSize { 0 };
+    const char*     m_captureGPUs { nullptr };
+    const char*     m_renderGPUs { nullptr };
+    BenchmarkResult m_benchmarkResult {};
+    bool            m_hasBenchmark { false };
+    std::string     m_captureWindowName;
+    bool            m_hasError { false };
+    std::string     m_errorMessage;
 };
 } // namespace ShaderBeam
