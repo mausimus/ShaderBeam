@@ -8,6 +8,7 @@ MIT License
 #include "stdafx.h"
 #include "Renderer.h"
 #include "Helpers.h"
+#include "CaptureBase.h"
 
 namespace ShaderBeam
 {
@@ -34,7 +35,7 @@ void Renderer::Stop()
     Destroy();
 }
 
-void Renderer::Render(bool present)
+void Renderer::Render(bool present, bool ui)
 {
     D3D11_VIEWPORT viewport = { 0.0f, 0.0f, (float)m_options.outputWidth, (float)m_options.outputHeight };
     m_renderContext.deviceContext->RSSetViewports(1, &viewport);
@@ -59,10 +60,10 @@ void Renderer::Render(bool present)
             m_renderContext.outputTexture.get(), 0, destX, destY, 0, m_renderContext.inputTextures[m_renderContext.inputSlots[0]].get(), 0, &box);
     }
 
-    if(m_options.charts)
+    if(ui && m_options.charts)
         m_charts.Render(m_renderContext.outputTexture, m_options.outputHeight);
 
-    if(m_ui.RenderRequired())
+    if(ui && m_ui.RenderRequired())
     {
         targets[0] = m_uiTargetView.get();
         m_renderContext.deviceContext->OMSetRenderTargets(1, targets, NULL);
@@ -82,10 +83,6 @@ void Renderer::Render(bool present)
     if(present)
     {
         Present(true);
-    }
-    else
-    {
-        m_renderContext.deviceContext->Flush();
     }
     m_watcher.FrameSubmitted();
 }
@@ -149,16 +146,20 @@ void Renderer::Skip(int numFrames)
     m_renderContext.subFrameNo %= m_options.subFrames;
 }
 
-void Renderer::Benchmark()
+void Renderer::Benchmark(const std::shared_ptr<CaptureBase>& capture)
 {
     const float benchmarkDuration = 2 * TICKS_PER_SEC;
 
+    auto  input  = GetNextInput();
     auto  start  = Helpers::GetTicks();
     float end    = start;
     int   frames = 0;
     do
     {
-        Render(false);
+        if(frames % m_options.subFrames == 0)
+            capture->BenchmarkCopy(input);
+        Render(false, false);
+        Present(false);
         frames++;
         end = Helpers::GetTicks();
     } while(end < start + benchmarkDuration);

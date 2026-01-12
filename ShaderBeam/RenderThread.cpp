@@ -79,7 +79,7 @@ void RenderThread::Run()
             if(m_benchmark)
             {
                 m_benchmark = false;
-                m_renderer.Benchmark();
+                m_renderer.Benchmark(m_capture);
             }
             if(m_renderer.NewInputRequired())
             {

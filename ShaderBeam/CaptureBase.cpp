@@ -43,6 +43,12 @@ void CaptureBase::Start(winrt::com_ptr<IDXGIDevice> captureDevice, winrt::com_pt
     InternalStart();
 }
 
+void CaptureBase::BenchmarkCopy(const winrt::com_ptr<ID3D11Texture2D>& outputTexture)
+{
+    if(m_options.crossAdapter)
+        CopyStagingToOutput(outputTexture);
+}
+
 void CaptureBase::Stop()
 {
     m_stopping = true;

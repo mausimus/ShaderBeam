@@ -515,11 +515,10 @@ void UI::Render()
                 m_hasBenchmark = false;
                 ImGui::OpenPopup("Benchmark");
             }
-            ImGui::SetNextWindowSize(ImVec2(25 * m_fontSize, 10 * m_fontSize), ImGuiCond_Always);
+            ImGui::SetNextWindowSize(ImVec2(20 * m_fontSize, 6 * m_fontSize), ImGuiCond_Always);
             if(ImGui::BeginPopupModal("Benchmark"))
             {
-                ImGui::Text("Shader GPU benchmark result: %.0f FPS\n\n", m_benchmarkFPS);
-                ImGui::Text("The benchmark doesn't account for\nbandwidth between GPUs.\nActual max FPS will be lower.", m_benchmarkFPS);
+                ImGui::Text("Benchmark result: %.0f FPS\n\n", m_benchmarkFPS);
                 if(ImGui::Button("Close"))
                 {
                     ImGui::CloseCurrentPopup();

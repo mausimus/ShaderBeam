@@ -16,6 +16,8 @@ MIT License
 namespace ShaderBeam
 {
 
+class CaptureBase;
+
 class Renderer
 {
 public:
@@ -23,7 +25,7 @@ public:
 
     void Start(winrt::com_ptr<ID3D11Device> device, winrt::com_ptr<ID3D11DeviceContext> context);
     void Stop();
-    void Render(bool present);
+    void Render(bool present, bool ui = true);
     void Present(bool vsync);
 
     const winrt::com_ptr<ID3D11Texture2D>& GetNextInput() const;
@@ -32,7 +34,7 @@ public:
     void                                   RollInput(bool newFrame);
     void                                   Skip(int numFrames);
 
-    void Benchmark();
+    void Benchmark(const std::shared_ptr<CaptureBase>& capture);
 
 private:
     const Options& m_options;

@@ -20,10 +20,11 @@ public:
     // frame & context are in device used to process
     CaptureBase(Watcher& watcher, const Options& options);
     void Start(winrt::com_ptr<IDXGIDevice> captureDevice, winrt::com_ptr<ID3D11DeviceContext> outputContext);
+    void BenchmarkCopy(const winrt::com_ptr<ID3D11Texture2D>& outputTexture);
     void Stop();
     bool Poll(const winrt::com_ptr<ID3D11Texture2D>& outputTexture);
 
-    virtual bool IsSupported() = 0;
+    virtual bool IsSupported()           = 0;
     virtual bool SupportsWindowCapture() = 0;
 
     const char* m_name;
