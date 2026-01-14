@@ -109,7 +109,13 @@ bool UI::MouseRequired()
 
 bool UI::Input(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 {
-    return m_ready && m_options.ui && ImGui_ImplWin32_WndProcHandler(hWnd, msg, wParam, lParam);
+    try
+    {
+        return m_ready && m_options.ui && ImGui_ImplWin32_WndProcHandler(hWnd, msg, wParam, lParam);
+    }
+    catch(...)
+    { }
+    return false;
 }
 
 bool UI::RenderRequired() const
