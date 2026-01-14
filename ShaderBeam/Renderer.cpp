@@ -166,6 +166,7 @@ void Renderer::Benchmark(const std::shared_ptr<CaptureBase>& capture)
         {
             capture->BenchmarkCopy(input);
             m_renderContext.deviceContext->Flush();
+            WaitTillIdle();
             auto now = Helpers::GetTicks();
             copyTime += now - prev;
             prev = now;
@@ -173,11 +174,13 @@ void Renderer::Benchmark(const std::shared_ptr<CaptureBase>& capture)
 
         Render(false, false);
         m_renderContext.deviceContext->Flush();
+        WaitTillIdle();
         now = Helpers::GetTicks();
         renderTime += now - prev;
         prev = now;
 
         Present(false);
+        WaitTillIdle();
         frames++;
         now = Helpers::GetTicks();
         presentTime += now - prev;
@@ -375,6 +378,31 @@ void Renderer::DestroyInputs()
         m_renderContext.inputTextures[i] = nullptr;
     m_renderContext.inputTextures.clear();
     m_renderContext.inputSlots.clear();
+}
+
+void Renderer::WaitTillIdle()
+{
+    D3D11_QUERY_DESC            queryDesc = { D3D11_QUERY_EVENT, 0 };
+    winrt::com_ptr<ID3D11Query> query;
+    BOOL                        done = FALSE;
+
+    if(m_renderContext.device->CreateQuery(&queryDesc, query.put()) == S_OK)
+    {
+        m_renderContext.deviceContext->End(query.get());
+        while(!done)
+        {
+            switch(m_renderContext.deviceContext->GetData(query.get(), &done, sizeof(BOOL), 0))
+            {
+            case S_OK:
+                break;
+            case S_FALSE:
+                break;
+            default:
+                // error
+                return;
+            }
+        }
+    }
 }
 
 } // namespace ShaderBeam

@@ -48,6 +48,7 @@ private:
     void CreateInputs();
     void Destroy();
     void DestroyInputs();
+    void WaitTillIdle();
     int  GetNextSlot() const;
 
     winrt::com_ptr<IDXGISwapChain1>         m_swapChain { nullptr };
