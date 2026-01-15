@@ -64,6 +64,43 @@ bool Chart::Read(int& index, float& value)
     return false;
 }
 
+float Chart::Average(int numSamples)
+{
+    if(numSamples == 0)
+        return 0;
+
+    int   samples = 0;
+    float sum     = 0;
+    auto  index   = m_index;
+    while(samples++ < numSamples)
+    {
+        index--;
+        if(index < 0)
+            index += CHARTS_LEN;
+        sum += m_values[index];
+    }
+    return sum / numSamples;
+}
+
+float Chart::Min(int numSamples)
+{
+    if(numSamples == 0)
+        return 0;
+
+    int   samples = 0;
+    float min     = FLT_MAX;
+    auto  index   = m_index;
+    while(samples++ < numSamples)
+    {
+        index--;
+        if(index < 0)
+            index += CHARTS_LEN;
+        if(m_values[index] < min)
+            min = m_values[index];
+    }
+    return min;
+}
+
 Watcher::Watcher(UI& ui) : m_ui(ui) { }
 
 void Watcher::Start()
@@ -86,7 +123,9 @@ void Watcher::FrameSubmitted()
 
 void Watcher::FrameReceived(float value)
 {
-    m_receiveChart.AddDelta(value);
+    auto now   = Helpers::GetTicks();
+    auto delta = now - value;
+    m_receiveChart.AddValue(delta);
     m_inputFrames++;
     UpdateSnapshot();
 }
@@ -99,6 +138,7 @@ void Watcher::UpdateSnapshot()
         auto secondsElapsed = (now - m_lastSnapshot) / TICKS_PER_SEC;
         m_ui.m_inputFPS     = m_inputFrames / secondsElapsed;
         m_ui.m_outputFPS    = m_outputFrames / secondsElapsed;
+        m_ui.m_captureLag   = m_receiveChart.Min(m_inputFrames);
         m_inputFrames       = 0;
         m_outputFrames      = 0;
         m_lastSnapshot      = now;

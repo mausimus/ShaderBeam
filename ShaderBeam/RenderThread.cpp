@@ -19,14 +19,15 @@ static DWORD WINAPI ThreadProc(LPVOID lpParameter)
     return 0;
 }
 
-RenderThread::RenderThread(const Options& options, Renderer& renderer) : m_options(options), m_renderer(renderer), m_handle(NULL) { }
+RenderThread::RenderThread(const Options& options, const UI& ui, Renderer& renderer) : m_options(options), m_ui(ui), m_renderer(renderer), m_handle(NULL) { }
 
 void RenderThread::Start(const std::shared_ptr<CaptureBase>& capture)
 {
-    m_capture = capture;
-    m_handle  = CreateThread(NULL, 0, ThreadProc, this, 0, NULL);
-    m_stop    = false;
-    m_stopped = false;
+    m_capture    = capture;
+    m_nextResync = 0;
+    m_stop       = false;
+    m_stopped    = false;
+    m_handle     = CreateThread(NULL, 0, ThreadProc, this, 0, NULL);
     if(m_handle == NULL)
     {
         throw std::runtime_error("Unable to create render thread.");
@@ -53,6 +54,19 @@ void RenderThread::PollCapture()
 #else
     bool newFrame = m_capture->Poll(m_renderer.GetNextInput());
     m_renderer.RollInput(newFrame);
+    if(newFrame && m_options.autoSync && m_renderer.SupportsResync())
+    {
+        if(m_nextResync-- == 0)
+        {
+            m_nextResync = (int)(AUTOSYNC_INTERVAL * m_options.vsyncRate / m_options.subFrames);
+            if(m_ui.m_captureLag > m_options.vsyncDuration && m_ui.m_inputFPS < m_ui.m_outputFPS * 0.75f)
+            {
+                // we receive frames older than one display frame; skip output frames until we're in sync
+                auto laggedFrames = (int)floorf(m_ui.m_captureLag / m_options.vsyncDuration);
+                m_renderer.Skip(m_options.subFrames - (laggedFrames % m_options.subFrames));
+            }
+        }
+    }
 #endif
 }
 
@@ -65,7 +79,7 @@ void RenderThread::Run()
             if(m_benchmark)
             {
                 m_benchmark = false;
-                m_renderer.Benchmark();
+                m_renderer.Benchmark(m_capture);
             }
             if(m_renderer.NewInputRequired())
             {

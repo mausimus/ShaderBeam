@@ -56,6 +56,9 @@ void Charts::Render(const winrt::com_ptr<ID3D11Texture2D>& texture, int bottom)
 {
     Update();
 
+    if(m_options.useHdr)
+        return;
+
     D3D11_BOX box {};
     box.top    = 0;
     box.left   = 0;

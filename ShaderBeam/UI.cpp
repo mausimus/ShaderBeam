@@ -9,6 +9,7 @@ MIT License
 
 #include "UI.h"
 #include "Helpers.h"
+#include "CaptureBase.h"
 
 #include "imgui.h"
 #include "backends\imgui_impl_win32.h"
@@ -19,7 +20,7 @@ MIT License
 extern IMGUI_IMPL_API LRESULT ImGui_ImplWin32_WndProcHandler(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
 
 const char* SHADERBEAM_ABOUT = "                " SHADERBEAM_TITLE "\n"
-                               "               (c) 2025 mausimus\n"
+                               "            (c) 2025-2026 mausimus\n"
                                "     https://github.com/mausimus/ShaderBeam\n"
                                "         Distributed under MIT License\n"
                                "\n"
@@ -85,6 +86,18 @@ void UI::Start(HWND window, float scale, winrt::com_ptr<ID3D11Device> device, wi
     ClearPendingChanges();
     m_hasError     = false;
     m_hasBenchmark = false;
+
+    ScanWindows();
+    m_captureWindowName.clear();
+    for(const auto& window : m_inputs)
+    {
+        if(window.hwnd == m_pending.captureWindow)
+        {
+            m_captureWindowName = window.name;
+            break;
+        }
+    }
+
     m_errorMessage.clear();
     m_ready = true;
 }
@@ -96,7 +109,13 @@ bool UI::MouseRequired()
 
 bool UI::Input(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 {
-    return m_ready && m_options.ui && ImGui_ImplWin32_WndProcHandler(hWnd, msg, wParam, lParam);
+    try
+    {
+        return m_ready && m_options.ui && ImGui_ImplWin32_WndProcHandler(hWnd, msg, wParam, lParam);
+    }
+    catch(...)
+    { }
+    return false;
 }
 
 bool UI::RenderRequired() const
@@ -208,7 +227,6 @@ void UI::Render()
                 ShowAlertMarker("Monitor refresh rate is too low! Run ShaderBeam on a high-refresh display, 240 Hz+ recommended!");
             else
                 ShowHelpMarker("As reported by DWM for composition timing, may oscillate slightly.");
-
             ImGui::SameLine();
             ImGui::Text("                    Rendered FPS: %7.02f", m_outputFPS);
             if(m_outputFPS < m_options.vsyncRate * 0.95f)
@@ -218,25 +236,16 @@ void UI::Render()
 
             ImGui::Text("Content FPS: %7.02f", m_options.vsyncRate / m_options.subFrames);
             ShowHelpMarker("Frame-limit your game to this (or slightly lower) value, including decimals, using RTSS.");
-
             ImGui::SameLine();
             ImGui::Text("                    Captured FPS: %7.02f", m_inputFPS);
             ShowHelpMarker("Provided by capture API.\nCan vary, ideally should be same as Content FPS (if it's higher, frame-limit your game to Content FPS using RTSS).");
 
-            ImGui::SeparatorText("Render Parameters");
+#ifdef _DEBUG2
+            ImGui::Text("Capture Lag: %7.02f ms", m_captureLag);
+            ShowHelpMarker("As reported by Windows Capture.");
+#endif
 
-            if(ImGui::InputInt("SubFrames", &m_pending.subFrames))
-            {
-                if(m_pending.subFrames < MIN_SUBFRAMES)
-                    m_pending.subFrames = MIN_SUBFRAMES;
-                if(m_pending.subFrames > MAX_SUBFRAMES)
-                    m_pending.subFrames = MAX_SUBFRAMES;
-                SetApplyRequired();
-            }
-            if(m_pending.subFrames == 1)
-                ShowAlertMarker("The effects won't be visible with just one subframe!");
-            else
-                ShowHelpMarker("Number of display frames per content frame, determines Content FPS. Defaults to Display Hz / 60 and you normally don't need to change it.");
+            ImGui::SeparatorText("Render Parameters");
 
             if(ImGui::BeginCombo("Monitor Type", m_monitorTypes[m_pending.monitorType].c_str(), 0))
             {
@@ -255,7 +264,21 @@ void UI::Render()
                 }
                 ImGui::EndCombo();
             }
-            if(ImGui::BeginCombo("Shader Display", m_displays[m_pending.shaderDisplayNo].name.c_str(), 0))
+
+            if(ImGui::InputInt("SubFrames", &m_pending.subFrames))
+            {
+                if(m_pending.subFrames < MIN_SUBFRAMES)
+                    m_pending.subFrames = MIN_SUBFRAMES;
+                if(m_pending.subFrames > MAX_SUBFRAMES)
+                    m_pending.subFrames = MAX_SUBFRAMES;
+                SetApplyRequired();
+            }
+            if(m_pending.subFrames == 1)
+                ShowAlertMarker("The effects won't be visible with just one subframe!");
+            else
+                ShowHelpMarker("Number of display frames per content frame, determines Content FPS. Defaults to Display Hz / 60 and you normally don't need to change it.");
+
+            if(ImGui::BeginCombo("Output Display", m_displays[m_pending.shaderDisplayNo].name.c_str(), 0))
             {
                 for(const auto& display : m_displays)
                 {
@@ -272,16 +295,21 @@ void UI::Render()
                 }
                 ImGui::EndCombo();
             }
-            ShowHelpMarker("Display to output to (your high refresh one).");
+            ShowHelpMarker("Display to output to (your high refresh one).\nHaving just one monitor connected is recommended for best performance.");
 
-            if(ImGui::BeginCombo("Capture Display", m_displays[m_pending.captureDisplayNo].name.c_str(), 0))
+            if(ImGui::BeginCombo("Capture Input", m_captureWindowName.c_str(), 0))
             {
-                for(const auto& display : m_displays)
+                ScanWindows();
+                for(const auto& window : m_inputs)
                 {
-                    auto selected = display.no == m_pending.captureDisplayNo;
-                    if(ImGui::Selectable(display.name.c_str(), selected))
+                    auto selected =
+                        window.hwnd == m_pending.captureWindow && window.captureDisplayNo == m_pending.captureDisplayNo && window.captureMethod == m_pending.captureMethod;
+                    if(ImGui::Selectable(window.name.c_str(), selected) && window.hwnd != (HWND)INVALID_HANDLE_VALUE)
                     {
-                        m_pending.captureDisplayNo = display.no;
+                        m_pending.captureWindow    = window.hwnd;
+                        m_pending.captureDisplayNo = window.captureDisplayNo;
+                        m_pending.captureMethod    = window.captureMethod;
+                        m_captureWindowName        = window.name;
                         SetApplyRequired();
                     }
                     if(selected)
@@ -291,7 +319,7 @@ void UI::Render()
                 }
                 ImGui::EndCombo();
             }
-            ShowHelpMarker("Display to capture (usually same as Shader Display).");
+            ShowHelpMarker("Specific window preferred for lower latency.\nWindows Graphics Capture preferred for Desktop.");
 
             if(ImGui::BeginCombo("Shader GPU", m_adapters[m_pending.shaderAdapterNo].name.c_str(), 0))
             {
@@ -333,20 +361,14 @@ void UI::Render()
             ShowHelpMarker(
                 "GPU used for capture. This should be your primary/gaming GPU.\nSometimes DXGI splits physical cards into multiple virutal ones so duplicates are possible.");
 
-            if(ImGui::SliderInt("Hardware sRGB", &m_pending.hardwareSrgb, 0, 1))
+            if(ImGui::BeginCombo("Split-screen", m_splitScreens[m_pending.splitScreen].c_str(), 0))
             {
-                SetApplyRequired();
-            }
-            ShowHelpMarker("Reduces shader cost up to ~30% but with some quality loss and inability to adjust gamma (fixed at ~2.2). For slow iGPUs only.");
-
-            if(ImGui::BeginCombo("Capture API", m_captures[m_pending.captureMethod].name.c_str(), 0))
-            {
-                for(const auto& capture : m_captures)
+                for(auto i = 0; i < m_splitScreens.size(); i++)
                 {
-                    auto selected = capture.no == m_pending.captureMethod;
-                    if(ImGui::Selectable(capture.name.c_str(), selected))
+                    auto selected = i == m_pending.splitScreen;
+                    if(ImGui::Selectable(m_splitScreens[i].c_str(), selected))
                     {
-                        m_pending.captureMethod = capture.no;
+                        m_pending.splitScreen = i;
                         SetApplyRequired();
                     }
                     if(selected)
@@ -356,13 +378,46 @@ void UI::Render()
                 }
                 ImGui::EndCombo();
             }
-            ShowHelpMarker("Windows Graphics Capture is recommended, but you can also try Desktop Duplication (limited support).");
+            ShowHelpMarker("Split-screen mode for before/after comparison.");
 
-            if(ImGui::SliderInt("Split-screen", &m_pending.splitScreen, 0, 2))
+            if(ImGui::BeginCombo("Queued Frames", m_queuedFrames[m_pending.maxQueuedFrames].c_str(), 0))
+            {
+                for(auto i = 0; i < m_queuedFrames.size(); i++)
+                {
+                    auto selected = i == m_pending.maxQueuedFrames;
+                    if(ImGui::Selectable(m_queuedFrames[i].c_str(), selected))
+                    {
+                        m_pending.maxQueuedFrames = i;
+                        SetApplyRequired();
+                    }
+                    if(selected)
+                    {
+                        ImGui::SetItemDefaultFocus();
+                    }
+                }
+                ImGui::EndCombo();
+            }
+            ShowHelpMarker("Queued presentation frames, trade-off between input latency and stability. These are output (Display Hz) frames. Driver default is usually 3.");
+
+            if(ImGui::Checkbox("Auto-Sync", &m_pending.autoSync))
             {
                 SetApplyRequired();
             }
-            ShowHelpMarker("Enable split-screen mode (0: off, 1: vertical, 2: horizontal).");
+            ShowHelpMarker("Tries to resync to capture timing every 2 seconds,\ncan reduce latency at the cost of smoothness.\nBest used with Window Input.");
+
+            ImGui::SameLine();
+            if(ImGui::Checkbox("Hardware sRGB", &m_pending.hardwareSrgb))
+            {
+                SetApplyRequired();
+            }
+            ShowHelpMarker("Reduces shader cost up to ~30% but with some quality loss and inability to adjust gamma (fixed at ~2.2). For slow iGPUs only.");
+
+            ImGui::SameLine();
+            if(ImGui::Checkbox("HDR", &m_pending.useHdr))
+            {
+                SetApplyRequired();
+            }
+            ShowHelpMarker("Work in progress, results may vary.");
 
             bool applyRequired = m_applyRequired;
             if(applyRequired)
@@ -381,6 +436,8 @@ void UI::Render()
             {
                 ImGui::PopStyleColor(3);
             }
+            ImGui::SameLine();
+            ImGui::Checkbox("Remember", &m_options.rememberSettings);
 
             //////////////////////////////////////////
 
@@ -416,9 +473,32 @@ void UI::Render()
                 case ParameterType::ParamFloat:
                     ImGui::SliderFloat(p.name.c_str(), p.p.fp.value, p.p.fp.min, p.p.fp.max);
                     break;
-                case ParameterType::ParamInt:
-                    ImGui::SliderInt(p.name.c_str(), p.p.ip.value, p.p.ip.min, p.p.ip.max);
-                    break;
+                case ParameterType::ParamInt: {
+                    if(p.dropdown.size())
+                    {
+                        if(ImGui::BeginCombo(p.name.c_str(), p.dropdown.at(*p.p.ip.value).c_str(), 0))
+                        {
+                            for(const auto& option : p.dropdown)
+                            {
+                                auto selected = option.first == *p.p.ip.value;
+                                if(ImGui::Selectable(option.second.c_str(), selected))
+                                {
+                                    *p.p.ip.value = option.first;
+                                }
+                                if(selected)
+                                {
+                                    ImGui::SetItemDefaultFocus();
+                                }
+                            }
+                            ImGui::EndCombo();
+                        }
+                    }
+                    else
+                    {
+                        ImGui::SliderInt(p.name.c_str(), p.p.ip.value, p.p.ip.min, p.p.ip.max);
+                    }
+                }
+                break;
                 default:
                     abort();
                 }
@@ -439,11 +519,18 @@ void UI::Render()
             if(m_hasBenchmark)
             {
                 m_hasBenchmark = false;
-                ImGui::OpenPopup("Benchmark");
+                ImGui::OpenPopup("Benchmark Result");
             }
-            if(ImGui::BeginPopupModal("Benchmark"))
+            ImGui::SetNextWindowSize(ImVec2(16 * m_fontSize, 12 * m_fontSize), ImGuiCond_Always);
+            if(ImGui::BeginPopupModal("Benchmark Result"))
             {
-                ImGui::Text("Shader GPU benchmark result:\n%.0f FPS", m_benchmarkFPS);
+                if(m_benchmarkResult.copyFPS != 0)
+                    ImGui::Text("      Copy FPS: %8.0f\n", m_benchmarkResult.copyFPS);
+                ImGui::Text("    Shader FPS: %8.0f\n", m_benchmarkResult.renderFPS);
+                ImGui::Text("   Present FPS: %8.0f\n", m_benchmarkResult.presentFPS);
+                ImGui::Text(" -------------------------\n");
+                ImGui::Text("   Overall FPS: %8.0f\n\n", m_benchmarkResult.totalFPS);
+
                 if(ImGui::Button("Close"))
                 {
                     ImGui::CloseCurrentPopup();
@@ -571,12 +658,16 @@ void UI::ClearPendingChanges()
     m_pending.captureAdapterNo = m_options.captureAdapterNo;
     m_pending.shaderAdapterNo  = m_options.shaderAdapterNo;
     m_pending.captureDisplayNo = m_options.captureDisplayNo;
+    m_pending.captureWindow    = m_options.captureWindow;
     m_pending.shaderDisplayNo  = m_options.shaderDisplayNo;
     m_pending.subFrames        = m_options.subFrames;
     m_pending.hardwareSrgb     = m_options.hardwareSrgb;
     m_pending.captureMethod    = m_options.captureMethod;
     m_pending.splitScreen      = m_options.splitScreen;
     m_pending.monitorType      = m_options.monitorType;
+    m_pending.autoSync         = m_options.autoSync;
+    m_pending.maxQueuedFrames  = m_options.maxQueuedFrames;
+    m_pending.useHdr           = m_options.useHdr;
 }
 
 void UI::ApplyPendingChanges()
@@ -584,24 +675,120 @@ void UI::ApplyPendingChanges()
     m_options.captureAdapterNo = m_pending.captureAdapterNo;
     m_options.shaderAdapterNo  = m_pending.shaderAdapterNo;
     m_options.captureDisplayNo = m_pending.captureDisplayNo;
+    m_options.captureWindow    = m_pending.captureWindow;
     m_options.shaderDisplayNo  = m_pending.shaderDisplayNo;
     m_options.subFrames        = m_pending.subFrames;
     m_options.hardwareSrgb     = m_pending.hardwareSrgb;
     m_options.captureMethod    = m_pending.captureMethod;
     m_options.splitScreen      = m_pending.splitScreen;
     m_options.monitorType      = m_pending.monitorType;
+    m_options.autoSync         = m_pending.autoSync;
+    m_options.maxQueuedFrames  = m_pending.maxQueuedFrames;
+    m_options.useHdr           = m_pending.useHdr;
 }
 
-void UI::SetBenchmark(float fps)
+void UI::SetBenchmark(const BenchmarkResult& result)
 {
-    m_benchmarkFPS = fps;
-    m_hasBenchmark = true;
+    m_benchmarkResult = result;
+    m_hasBenchmark    = true;
 }
 
 void UI::SetError(const char* message)
 {
     m_hasError     = true;
     m_errorMessage = message;
+}
+
+// See http://blogs.msdn.com/b/oldnewthing/archive/2007/10/08/5351207.aspx
+BOOL IsAltTabWindow(HWND hwnd)
+{
+    // Start at the root owner
+    HWND hwndWalk = GetAncestor(hwnd, GA_ROOTOWNER);
+
+    // See if we are the last active visible popup
+    HWND hwndTry;
+    while((hwndTry = GetLastActivePopup(hwndWalk)) != hwndTry)
+    {
+        if(IsWindowVisible(hwndTry))
+            break;
+        hwndWalk = hwndTry;
+    }
+    return hwndWalk == hwnd;
+}
+
+void UI::AddWindow(HWND hWnd)
+{
+    wchar_t name[128];
+    wchar_t wclass[128];
+    if(hWnd != m_options.outputWindow && IsWindowVisible(hWnd) && IsAltTabWindow(hWnd) && !IsIconic(hWnd) && GetWindowText(hWnd, name, 127))
+    {
+        auto style      = GetWindowLongPtr(hWnd, GWL_STYLE);
+        bool fullscreen = !(style & WS_CAPTION) && !(style & WS_THICKFRAME);
+        if(fullscreen)
+        {
+            auto monitor = MonitorFromWindow(hWnd, MONITOR_DEFAULTTONEAREST);
+            if(monitor == m_options.captureMonitor)
+            {
+                RECT windowRect;
+                fullscreen =
+                    GetWindowRect(hWnd, &windowRect) && windowRect.right - windowRect.left == m_options.outputWidth && windowRect.bottom - windowRect.top == m_options.outputHeight;
+            }
+        }
+
+        if(GetClassNameW(hWnd, wclass, 127) && (wcscmp(wclass, L"Windows.UI.Core.CoreWindow") == 0 || wcscmp(wclass, L"ApplicationFrameWindow") == 0))
+        {
+            DWORD cloaked = FALSE;
+            if(DwmGetWindowAttribute(hWnd, DWMWA_CLOAKED, &cloaked, sizeof(cloaked)) == S_OK && cloaked == DWM_CLOAKED_SHELL)
+                return;
+        }
+
+        std::string displayName = "Window: " + Helpers::WCharToString(name) + " (" + std::to_string((uint64_t)hWnd) + ")";
+        m_inputs.emplace_back(hWnd, displayName, fullscreen, 0, 0);
+    }
+}
+
+static BOOL CALLBACK EnumWindowsProc(_In_ HWND hWnd, _In_ LPARAM lParam)
+{
+    ((UI*)lParam)->AddWindow(hWnd);
+    return true;
+}
+
+void UI::ScanWindows()
+{
+    m_inputs.clear();
+
+    if(m_captures[0].api->SupportsWindowCapture())
+    {
+        EnumWindows(EnumWindowsProc, (LPARAM)this);
+        std::sort(m_inputs.begin(), m_inputs.end(), [](const InputInfo& a, const InputInfo& b) { return _stricmp(a.name.c_str(), b.name.c_str()) < 0; });
+    }
+
+    std::vector<InputInfo> desktops;
+    for(const auto& capture : m_captures)
+    {
+        for(const auto& display : m_displays)
+        {
+            desktops.emplace_back((HWND)0, display.name + " (" + capture.name + ")", true, capture.no, display.no);
+        }
+    }
+    m_inputs.insert(m_inputs.begin(), desktops.begin(), desktops.end());
+
+    /*
+    std::sort(m_inputs.begin(), m_inputs.end(), [](const InputInfo& a, const InputInfo& b) {
+        if(a.fullscreen == b.fullscreen)
+            return _stricmp(a.name.c_str(), b.name.c_str()) < 0;
+        else
+            return a.fullscreen > b.fullscreen;
+    });
+    m_inputs.insert(m_inputs.begin(), InputInfo { (HWND)INVALID_HANDLE_VALUE, "-- FULLSCREEN WINDOWS", true });
+    for(auto iter = m_inputs.begin(); iter < m_inputs.end(); iter++)
+    {
+        if(!iter->fullscreen)
+        {
+            m_inputs.insert(iter, InputInfo { (HWND)INVALID_HANDLE_VALUE, "-- OTHER WINDOWS", false });
+            break;
+        }
+    }*/
 }
 
 } // namespace ShaderBeam

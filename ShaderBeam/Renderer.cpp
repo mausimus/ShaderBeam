@@ -8,6 +8,7 @@ MIT License
 #include "stdafx.h"
 #include "Renderer.h"
 #include "Helpers.h"
+#include "CaptureBase.h"
 
 namespace ShaderBeam
 {
@@ -34,7 +35,7 @@ void Renderer::Stop()
     Destroy();
 }
 
-void Renderer::Render(bool present)
+void Renderer::Render(bool present, bool ui)
 {
     D3D11_VIEWPORT viewport = { 0.0f, 0.0f, (float)m_options.outputWidth, (float)m_options.outputHeight };
     m_renderContext.deviceContext->RSSetViewports(1, &viewport);
@@ -59,10 +60,10 @@ void Renderer::Render(bool present)
             m_renderContext.outputTexture.get(), 0, destX, destY, 0, m_renderContext.inputTextures[m_renderContext.inputSlots[0]].get(), 0, &box);
     }
 
-    if(m_options.charts)
+    if(ui && m_options.charts)
         m_charts.Render(m_renderContext.outputTexture, m_options.outputHeight);
 
-    if(m_ui.RenderRequired())
+    if(ui && m_ui.RenderRequired())
     {
         targets[0] = m_uiTargetView.get();
         m_renderContext.deviceContext->OMSetRenderTargets(1, targets, NULL);
@@ -82,10 +83,6 @@ void Renderer::Render(bool present)
     if(present)
     {
         Present(true);
-    }
-    else
-    {
-        m_renderContext.deviceContext->Flush();
     }
     m_watcher.FrameSubmitted();
 }
@@ -123,6 +120,11 @@ bool Renderer::NewInputRequired() const
     return m_shaderManager.NewInputRequired(m_renderContext);
 }
 
+bool Renderer::SupportsResync() const
+{
+    return m_shaderManager.SupportsResync(m_renderContext);
+}
+
 void Renderer::RollInput(bool newFrame)
 {
     auto numInputs = m_renderContext.inputSlots.size();
@@ -138,25 +140,65 @@ void Renderer::RollInput(bool newFrame)
     m_renderContext.inputSlots[0] = latestInput;
 }
 
-void Renderer::Benchmark()
+void Renderer::Skip(int numFrames)
 {
-    const float benchmarkDuration = 2 * TICKS_PER_SEC;
+    m_renderContext.subFrameNo += numFrames;
+    m_renderContext.subFrameNo %= m_options.subFrames;
+}
 
-    auto  start  = Helpers::GetTicks();
-    float end    = start;
-    int   frames = 0;
+void Renderer::Benchmark(const std::shared_ptr<CaptureBase>& capture)
+{
+    const float benchmarkDuration = 4 * TICKS_PER_SEC;
+
+    auto  input       = GetNextInput();
+    auto  start       = Helpers::GetTicks();
+    float copyTime    = 0.0f;
+    float renderTime  = 0.0f;
+    float presentTime = 0.0f;
+    float now         = start;
+    float prev        = now;
+    int   frames      = 0;
     do
     {
-        Render(false);
+        auto pctComplete           = (now - start) / benchmarkDuration;
+        m_renderContext.subFrameNo = ((int)(m_options.subFrames * pctComplete)) % m_options.subFrames;
+        if(m_options.crossAdapter && (frames % m_options.subFrames == 0))
+        {
+            capture->BenchmarkCopy(input);
+            m_renderContext.deviceContext->Flush();
+            WaitTillIdle();
+            auto now = Helpers::GetTicks();
+            copyTime += now - prev;
+            prev = now;
+        }
+
+        Render(false, false);
+        m_renderContext.deviceContext->Flush();
+        WaitTillIdle();
+        now = Helpers::GetTicks();
+        renderTime += now - prev;
+        prev = now;
+
+        Present(false);
+        WaitTillIdle();
         frames++;
-        end = Helpers::GetTicks();
-    } while(end < start + benchmarkDuration);
-    m_ui.SetBenchmark(end != start ? frames / ((end - start) / TICKS_PER_SEC) : 0);
+        now = Helpers::GetTicks();
+        presentTime += now - prev;
+        prev = now;
+    } while(now < start + benchmarkDuration);
+    auto totalTime = now - start;
+    m_ui.SetBenchmark({
+        .totalFPS   = totalTime != 0 ? frames / (totalTime / TICKS_PER_SEC) : 0,
+        .copyFPS    = copyTime != 0 ? frames / (copyTime / TICKS_PER_SEC) : 0,
+        .renderFPS  = renderTime != 0 ? frames / (renderTime / TICKS_PER_SEC) : 0,
+        .presentFPS = presentTime != 0 ? frames / (presentTime / TICKS_PER_SEC) : 0,
+    });
 }
 
 void Renderer::Create()
 {
     auto dxgiDevice = m_renderContext.device.as<IDXGIDevice1>();
+    dxgiDevice->SetMaximumFrameLatency(m_options.maxQueuedFrames);
     if(m_options.gpuThreadPriority)
         dxgiDevice->SetGPUThreadPriority(m_options.gpuThreadPriority | 0x40000000);
 
@@ -172,7 +214,7 @@ void Renderer::Create()
     DXGI_SWAP_CHAIN_DESC1 d3d11SwapChainDesc = {};
     d3d11SwapChainDesc.Width                 = 0;
     d3d11SwapChainDesc.Height                = 0;
-    d3d11SwapChainDesc.Format                = DXGI_FORMAT_B8G8R8A8_UNORM;
+    d3d11SwapChainDesc.Format                = m_options.format;
     d3d11SwapChainDesc.SampleDesc.Count      = 1;
     d3d11SwapChainDesc.SampleDesc.Quality    = 0;
     d3d11SwapChainDesc.BufferUsage           = DXGI_USAGE_RENDER_TARGET_OUTPUT;
@@ -180,7 +222,7 @@ void Renderer::Create()
     d3d11SwapChainDesc.Scaling               = DXGI_SCALING_NONE;
     d3d11SwapChainDesc.SwapEffect            = DXGI_SWAP_EFFECT_FLIP_DISCARD;
     d3d11SwapChainDesc.AlphaMode             = DXGI_ALPHA_MODE_UNSPECIFIED;
-    d3d11SwapChainDesc.Flags                 = !m_options.exclusive && m_options.maxQueuedFrames ? DXGI_SWAP_CHAIN_FLAG_FRAME_LATENCY_WAITABLE_OBJECT : 0;
+    d3d11SwapChainDesc.Flags                 = 0;
     // fun fact: on Intel Arc setting DXGI_SWAP_CHAIN_FLAG_FRAME_LATENCY_WAITABLE_OBJECT
     // makes Present(1) not wait on vsync any more and BSODs Windows
 
@@ -199,24 +241,25 @@ void Renderer::Create()
 
         THROW(m_swapChain->SetFullscreenState(TRUE, output.get()), "Unable to set fullscreen");
 
-        THROW(m_swapChain->ResizeBuffers(d3d11SwapChainDesc.BufferCount, m_options.outputWidth, m_options.outputHeight, DXGI_FORMAT_B8G8R8A8_UNORM, 0), "Unable to resize buffers");
+        THROW(m_swapChain->ResizeBuffers(d3d11SwapChainDesc.BufferCount, m_options.outputWidth, m_options.outputHeight, m_options.format, 0), "Unable to resize buffers");
     }
 
-    if(!m_options.exclusive && m_options.maxQueuedFrames)
+    if(m_options.useHdr)
     {
-        auto swapChain2 = m_swapChain.as<IDXGISwapChain2>();
-        THROW(swapChain2->SetMaximumFrameLatency(m_options.maxQueuedFrames), "Unable to set frame latency");
+        winrt::com_ptr<IDXGISwapChain3> swapChain3;
+        THROW(m_swapChain->QueryInterface(__uuidof(IDXGISwapChain3), reinterpret_cast<void**>(swapChain3.put())), "Unable to get SwapChain3");
+        THROW(swapChain3->SetColorSpace1(DXGI_COLOR_SPACE_RGB_FULL_G10_NONE_P709), "Unable to set HDR ColorSpace");
     }
 
     THROW(m_swapChain->GetBuffer(0, __uuidof(ID3D11Texture2D), (void**)m_renderContext.outputTexture.put()), "Unable to get display buffer");
 
     D3D11_RENDER_TARGET_VIEW_DESC rtv {};
-    rtv.Format        = m_options.hardwareSrgb ? DXGI_FORMAT_B8G8R8A8_UNORM_SRGB : DXGI_FORMAT_B8G8R8A8_UNORM;
+    rtv.Format        = m_options.hardwareSrgb ? DXGI_FORMAT_B8G8R8A8_UNORM_SRGB : m_options.format;
     rtv.ViewDimension = D3D11_RTV_DIMENSION_TEXTURE2D;
     THROW(m_renderContext.device->CreateRenderTargetView(m_renderContext.outputTexture.get(), &rtv, m_renderContext.outputTargetView.put()), "Unable to create render target");
 
     D3D11_RENDER_TARGET_VIEW_DESC uitv {};
-    uitv.Format        = DXGI_FORMAT_B8G8R8A8_UNORM;
+    uitv.Format        = m_options.format;
     uitv.ViewDimension = D3D11_RTV_DIMENSION_TEXTURE2D;
     THROW(m_renderContext.device->CreateRenderTargetView(m_renderContext.outputTexture.get(), &uitv, m_uiTargetView.put()), "Unable to create render target");
 
@@ -258,7 +301,7 @@ void Renderer::CreateInputs()
     desc.Width              = m_options.outputWidth;
     desc.Height             = m_options.outputHeight;
     desc.ArraySize          = 1;
-    desc.Format             = m_options.hardwareSrgb ? DXGI_FORMAT_B8G8R8A8_UNORM_SRGB : DXGI_FORMAT_B8G8R8A8_UNORM;
+    desc.Format             = m_options.hardwareSrgb ? DXGI_FORMAT_B8G8R8A8_UNORM_SRGB : m_options.format;
     desc.SampleDesc.Count   = 1;
     desc.SampleDesc.Quality = 0;
     desc.MipLevels          = 1;
@@ -268,11 +311,12 @@ void Renderer::CreateInputs()
     desc.BindFlags          = D3D11_BIND_SHADER_RESOURCE;
 
     D3D11_SUBRESOURCE_DATA data {};
+    auto                   formatWidth = m_options.useHdr ? 2 : 1;
     std::vector<uint32_t>  initialData;
-    initialData.resize(m_options.outputWidth * m_options.outputHeight);
+    initialData.resize(m_options.outputWidth * m_options.outputHeight * formatWidth);
     data.pSysMem          = initialData.data();
-    data.SysMemPitch      = m_options.outputWidth * sizeof(uint32_t);
-    data.SysMemSlicePitch = m_options.outputWidth * m_options.outputHeight * sizeof(uint32_t);
+    data.SysMemPitch      = m_options.outputWidth * sizeof(uint32_t) * formatWidth;
+    data.SysMemSlicePitch = m_options.outputWidth * m_options.outputHeight * sizeof(uint32_t) * formatWidth;
     for(int i = 0; i < inputsRequired; i++)
     {
 #ifdef RGB_TEST
@@ -334,6 +378,31 @@ void Renderer::DestroyInputs()
         m_renderContext.inputTextures[i] = nullptr;
     m_renderContext.inputTextures.clear();
     m_renderContext.inputSlots.clear();
+}
+
+void Renderer::WaitTillIdle()
+{
+    D3D11_QUERY_DESC            queryDesc = { D3D11_QUERY_EVENT, 0 };
+    winrt::com_ptr<ID3D11Query> query;
+    BOOL                        done = FALSE;
+
+    if(m_renderContext.device->CreateQuery(&queryDesc, query.put()) == S_OK)
+    {
+        m_renderContext.deviceContext->End(query.get());
+        while(!done)
+        {
+            switch(m_renderContext.deviceContext->GetData(query.get(), &done, sizeof(BOOL), 0))
+            {
+            case S_OK:
+                break;
+            case S_FALSE:
+                break;
+            default:
+                // error
+                return;
+            }
+        }
+    }
 }
 
 } // namespace ShaderBeam

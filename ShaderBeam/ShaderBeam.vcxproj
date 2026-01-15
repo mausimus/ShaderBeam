@@ -144,6 +144,7 @@
     <ClInclude Include="framework.h" />
     <ClInclude Include="Helpers.h" />
     <ClInclude Include="imgui\imconfig.h" />
+    <ClInclude Include="ini.h" />
     <ClInclude Include="ProggyVectorRegular.h" />
     <ClInclude Include="RenderContext.h" />
     <ClInclude Include="Shaders\CRTBeamSimulatorShader.h" />
@@ -167,6 +168,7 @@
     <ClCompile Include="CaptureDD.cpp" />
     <ClCompile Include="CaptureWGC.cpp" />
     <ClCompile Include="Charts.cpp" />
+    <ClCompile Include="Common.cpp" />
     <ClCompile Include="Helpers.cpp" />
     <ClCompile Include="ShaderProfile.cpp" />
     <ClCompile Include="ShaderManager.cpp" />

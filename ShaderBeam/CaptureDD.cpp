@@ -23,6 +23,11 @@ bool CaptureDD::IsSupported()
     return true;
 }
 
+bool CaptureDD::SupportsWindowCapture()
+{
+    return false;
+}
+
 void CaptureDD::InternalStart()
 {
     winrt::com_ptr<IDXGIAdapter> dxgiAdapter;

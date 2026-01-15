@@ -28,6 +28,8 @@ struct Chart
     void AddValue(float value);
 
     bool Read(int& index, float& value);
+    float Average(int numSamples);
+    float Min(int numSamples);
 };
 
 class Watcher

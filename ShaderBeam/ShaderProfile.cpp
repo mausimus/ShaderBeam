@@ -20,22 +20,36 @@ void ShaderProfile::Passthrough(const RenderContext& renderContext)
 void ShaderProfile::AddParameter(const char* name, const char* description, float* value, float min, float max)
 {
     m_parameterInfos.push_back(ParameterInfo {
-        .no   = (unsigned)m_parameterInfos.size(),
-        .name = name,
-        .hint = description,
-        .type = ParameterType::ParamFloat,
-        .p    = { .fp = { .value = value, .min = min, .max = max, .def = *value } },
+        .no       = (unsigned)m_parameterInfos.size(),
+        .name     = name,
+        .hint     = description,
+        .type     = ParameterType::ParamFloat,
+        .dropdown = m_empty,
+        .p        = { .fp = { .value = value, .min = min, .max = max, .def = *value } },
     });
 }
 
 void ShaderProfile::AddParameter(const char* name, const char* description, int* value, int min, int max)
 {
     m_parameterInfos.push_back(ParameterInfo {
-        .no   = (unsigned)m_parameterInfos.size(),
-        .name = name,
-        .hint = description,
-        .type = ParameterType::ParamInt,
-        .p    = { .ip = { .value = value, .min = min, .max = max, .def = *value } },
+        .no       = (unsigned)m_parameterInfos.size(),
+        .name     = name,
+        .hint     = description,
+        .type     = ParameterType::ParamInt,
+        .dropdown = m_empty,
+        .p        = { .ip = { .value = value, .min = min, .max = max, .def = *value } },
+    });
+}
+
+void ShaderProfile::AddParameter(const char* name, const char* description, int* value, int min, int max, const std::map<int, std::string>& dropdown)
+{
+    m_parameterInfos.push_back(ParameterInfo {
+        .no       = (unsigned)m_parameterInfos.size(),
+        .name     = name,
+        .hint     = description,
+        .type     = ParameterType::ParamInt,
+        .dropdown = dropdown,
+        .p        = { .ip = { .value = value, .min = min, .max = max, .def = *value } },
     });
 }
 
@@ -60,6 +74,11 @@ void ShaderProfile::ResetDefaults()
 bool ShaderProfile::NewInputRequired(const RenderContext& renderContext) const
 {
     return renderContext.subFrameNo == 0;
+}
+
+bool ShaderProfile::SupportsResync(const RenderContext& renderContext) const
+{
+    return true;
 }
 
 } // namespace ShaderBeam

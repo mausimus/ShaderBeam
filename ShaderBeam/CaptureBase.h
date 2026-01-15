@@ -20,10 +20,12 @@ public:
     // frame & context are in device used to process
     CaptureBase(Watcher& watcher, const Options& options);
     void Start(winrt::com_ptr<IDXGIDevice> captureDevice, winrt::com_ptr<ID3D11DeviceContext> outputContext);
+    void BenchmarkCopy(const winrt::com_ptr<ID3D11Texture2D>& outputTexture);
     void Stop();
     bool Poll(const winrt::com_ptr<ID3D11Texture2D>& outputTexture);
 
-    virtual bool IsSupported() = 0;
+    virtual bool IsSupported()           = 0;
+    virtual bool SupportsWindowCapture() = 0;
 
     const char* m_name;
 
@@ -47,6 +49,8 @@ private:
     winrt::com_ptr<ID3D11DeviceContext> m_stagingContext;
     winrt::com_ptr<ID3D11Texture2D>     m_stagingFrame;
     bool                                m_stagingCopyRequired { false };
+    int                                 m_windowX { 0 };
+    int                                 m_windowY { 0 };
 
     void CopyTrimToOutputSize(ID3D11DeviceContext* context, ID3D11Texture2D* output, ID3D11Texture2D* source, int width, int height);
     void CopyStagingToOutput(const winrt::com_ptr<ID3D11Texture2D>& outputTexture);
