@@ -20,13 +20,9 @@ check out its sister app [ShaderGlass](https://github.com/mausimus/ShaderGlass).
 
 ### Download
 
-Latest stable release (v0.1, 28 Dec 2025)
+Latest stable release (v0.2, 15 Jan 2026)
 
-* https://github.com/mausimus/ShaderBeam/releases/download/v0.1/ShaderBeam-0.1-win-x64.zip
-
-Latest beta release (v0.2, 11 Jan 2026)
-
-* https://github.com/mausimus/ShaderBeam/releases/tag/v0.2-prerelease
+* https://github.com/mausimus/ShaderBeam/releases/download/v0.2/ShaderBeam-0.2-win-x64.zip
 
 [Report feedback here](https://github.com/mausimus/ShaderBeam/discussions/2)
 
@@ -65,6 +61,7 @@ with no other apps or overlays running. Make sure to try these:
 * Ensure "Background Application Max Frame Rate" is Off (NVIDIA Control Panel)
 * Use Process Lasso to max GPU priority of ShaderBeam process
 * Desktop can be a mixed bag, best used with borderless fullscreen games
+* After you start your game, select its window as Capture Input instead of whole Desktop
 
 ### Second GPU provides best experience
 
@@ -132,6 +129,11 @@ as it can introduce choppiness to the capture.
 
 Whenever this happens, press Ctrl+Shift+G to force ShaderBeam on top.
 Some games will occasionally kick ShaderBeam out as they use the same topmost window flag.
+
+#### > I see slowly moving horizontal banding
+
+Adjust Gamma until they become less visible. You can also change Scan Direction
+to "No Scan" although that will degrade visual quality slightly (especially on OLEDs).
 
 ### License
 
