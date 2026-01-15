@@ -24,7 +24,7 @@ Latest stable release (v0.2, 15 Jan 2026)
 
 * https://github.com/mausimus/ShaderBeam/releases/download/v0.2/ShaderBeam-0.2-win-x64.zip
 
-[Report feedback here](https://github.com/mausimus/ShaderBeam/discussions/2)
+[Report feedback here](https://github.com/mausimus/ShaderBeam/discussions/20)
 
 > [!WARNING]
 > This app has the potential to create rapidly flashing images.
