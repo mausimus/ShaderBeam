@@ -403,7 +403,7 @@ void UI::Render()
             {
                 SetApplyRequired();
             }
-            ShowHelpMarker("Tries to resync to capture timing every 2 seconds,\nreduces latency for frame-limited inputs.\nBest used with Window Input.");
+            ShowHelpMarker("Tries to resync to capture timing every 2 seconds,\ncan reduce latency at the cost of smoothness.\nBest used with Window Input.");
 
             ImGui::SameLine();
             if(ImGui::Checkbox("Hardware sRGB", &m_pending.hardwareSrgb))
@@ -417,7 +417,7 @@ void UI::Render()
             {
                 SetApplyRequired();
             }
-            ShowHelpMarker("Only partially supported, results may vary.");
+            ShowHelpMarker("Work in progress, results may vary.");
 
             bool applyRequired = m_applyRequired;
             if(applyRequired)
@@ -529,7 +529,7 @@ void UI::Render()
                 ImGui::Text("    Shader FPS: %8.0f\n", m_benchmarkResult.renderFPS);
                 ImGui::Text("   Present FPS: %8.0f\n", m_benchmarkResult.presentFPS);
                 ImGui::Text(" -------------------------\n");
-                ImGui::Text("  Combined FPS: %8.0f\n\n", m_benchmarkResult.totalFPS);
+                ImGui::Text("   Overall FPS: %8.0f\n\n", m_benchmarkResult.totalFPS);
 
                 if(ImGui::Button("Close"))
                 {
