@@ -77,7 +77,7 @@ public:
         AddParameter("LCD Anti-retention",
                      "Prevents image retention from BFI interfering with LCD voltage polarity inversion algorithm\n"
                      "- It will cause occasional stutter as it desyncs CRT refresh rate from content refresh rate.\n"
-                     "- Auto-disabled on OLEDs and LCDs with even subframe count.",
+                     "- Auto-disabled on OLEDs and LCDs with odd subframe count.",
                      &m_lcdAntiRetention,
                      0,
                      1,
