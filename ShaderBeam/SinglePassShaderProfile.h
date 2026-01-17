@@ -12,27 +12,24 @@ MIT License
 namespace ShaderBeam
 {
 
-class SinglePassShaderProfile : public ShaderProfile
+class SinglePassShaderBase : public ShaderProfile
 {
 public:
-    virtual void Destroy();
+    virtual void Destroy() { }
 
 protected:
-    void SetShader(const wchar_t* filename, D3D10_SHADER_MACRO* macros, const RenderContext& renderContext);
-    void SetParameterBuffer(void* data, int size, const RenderContext& renderContext);
-    void CreatePipeline(const RenderContext& renderContext);
-    void RenderPipeline(const RenderContext& renderContext);
-    void UpdateParameters(const RenderContext& renderContext);
+    virtual void SetShader(const std::string& filename, const std::map<std::string, std::string>& macros, const RenderContext& renderContext) = 0;
+    virtual void SetParameterBuffer(void* data, int size, const RenderContext& renderContext)                                                 = 0;
+    virtual void CreatePipeline(const RenderContext& renderContext)                                                                           = 0;
+    virtual void RenderPipeline(const RenderContext& renderContext)                                                                           = 0;
+    virtual void UpdateParameters(const RenderContext& renderContext)                                                                         = 0;
 
-    virtual void OverrideInputs(const RenderContext& renderContext, const std::span<ID3D11ShaderResourceView*>& inputs);
+    virtual void OverrideInputs(const RenderContext& renderContext, const std::span<void*>& inputs) { }
 
-private:
     void* m_parametersBuffer { nullptr };
     int   m_parametersSize { 0 };
-
-    winrt::com_ptr<ID3D11VertexShader> m_vertexShader;
-    winrt::com_ptr<ID3D11PixelShader>  m_pixelShader;
-    winrt::com_ptr<ID3D11SamplerState> m_samplerState;
-    winrt::com_ptr<ID3D11Buffer>       m_constantBuffer;
 };
 } // namespace ShaderBeam
+
+#include "SinglePassShaderD3D11.h"
+

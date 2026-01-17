@@ -26,12 +26,10 @@ public:
 
     void Render(const RenderContext& renderContext)
     {
-        static const float black[4] = { 0.0f, 0.0f, 0.0f, 1.0f };
-
         if(renderContext.subFrameNo != 0)
-            renderContext.deviceContext->ClearRenderTargetView(renderContext.outputTargetView.get(), black);
+            renderContext.BlackFrame();
         else
-            Passthrough(renderContext);
+            renderContext.Passthrough();
     }
 };
 } // namespace ShaderBeam

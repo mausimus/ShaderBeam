@@ -13,16 +13,18 @@ MIT License
 namespace ShaderBeam
 {
 
+class Renderer;
+
 class CaptureBase
 {
 public:
     // device is the device to capture using
     // frame & context are in device used to process
-    CaptureBase(Watcher& watcher, const Options& options);
-    void Start(winrt::com_ptr<IDXGIDevice> captureDevice, winrt::com_ptr<ID3D11DeviceContext> outputContext);
-    void BenchmarkCopy(const winrt::com_ptr<ID3D11Texture2D>& outputTexture);
-    void Stop();
-    bool Poll(const winrt::com_ptr<ID3D11Texture2D>& outputTexture);
+    CaptureBase(Watcher& watcher, const Options& options, Renderer& renderer, RenderContext& renderContext);
+    virtual void Start(const AdapterInfo& adapter);
+    void         BenchmarkCopy();
+    virtual void Stop();
+    bool         Poll();
 
     virtual bool IsSupported()           = 0;
     virtual bool SupportsWindowCapture() = 0;
@@ -30,30 +32,20 @@ public:
     const char* m_name;
 
 protected:
-    Watcher&                    m_watcher;
-    const Options&              m_options;
-    volatile bool               m_stopping { false };
-    winrt::com_ptr<IDXGIDevice> m_captureDevice;
+    Watcher&       m_watcher;
+    Renderer&      m_renderer;
+    RenderContext& m_renderContext;
+    const Options& m_options;
+    volatile bool  m_stopping { false };
 
-    virtual void InternalStart()                                                    = 0;
-    virtual bool InternalPoll(const winrt::com_ptr<ID3D11Texture2D>& outputTexture) = 0;
-    virtual void InternalStop()                                                     = 0;
+    bool m_stagingCopyRequired { false };
+    int  m_windowX { 0 };
+    int  m_windowY { 0 };
 
-    void CopyToOutput(const winrt::com_ptr<ID3D11Texture2D>& capturedFrame, int width, int height, const winrt::com_ptr<ID3D11Texture2D>& outputTexture);
-
-private:
-    winrt::com_ptr<ID3D11DeviceContext> m_outputContext;
-
-    // for copying between devices
-    winrt::com_ptr<ID3D11Device>        m_stagingDevice;
-    winrt::com_ptr<ID3D11DeviceContext> m_stagingContext;
-    winrt::com_ptr<ID3D11Texture2D>     m_stagingFrame;
-    bool                                m_stagingCopyRequired { false };
-    int                                 m_windowX { 0 };
-    int                                 m_windowY { 0 };
-
-    void CopyTrimToOutputSize(ID3D11DeviceContext* context, ID3D11Texture2D* output, ID3D11Texture2D* source, int width, int height);
-    void CopyStagingToOutput(const winrt::com_ptr<ID3D11Texture2D>& outputTexture);
+    virtual void InternalStart()       = 0;
+    virtual bool InternalPoll()        = 0;
+    virtual void InternalStop()        = 0;
+    virtual void CopyStagingToOutput() = 0;
 };
 
 } // namespace ShaderBeam

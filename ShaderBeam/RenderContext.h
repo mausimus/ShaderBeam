@@ -12,20 +12,40 @@ MIT License
 namespace ShaderBeam
 {
 
-struct RenderContext
+class RenderContextBase
 {
-    RenderContext(const Options& options) : options(options) { }
+public:
+    RenderContextBase(const Options& options) : options(options) { }
 
-    int                                                   frameNo { 0 };
-    int                                                   subFrameNo { 0 };
-    winrt::com_ptr<ID3D11Device>                          device;
-    winrt::com_ptr<ID3D11DeviceContext>                   deviceContext;
-    std::vector<winrt::com_ptr<ID3D11Texture2D>>          inputTextures;
-    std::vector<winrt::com_ptr<ID3D11ShaderResourceView>> inputTextureViews;
-    std::vector<int>                                      inputSlots;
-    winrt::com_ptr<ID3D11Texture2D>                       outputTexture;
-    winrt::com_ptr<ID3D11RenderTargetView>                outputTargetView;
+    int              frameNo { 0 };
+    int              subFrameNo { 0 };
+    std::vector<int> inputSlots;
 
     const Options& options;
+
+    // renderer
+    virtual void Create(const AdapterInfo& adapter) = 0;
+    virtual void BeginFrame()                       = 0;
+    virtual void DrawSplitScreen()                  = 0;
+    virtual void BeginUI()                          = 0;
+    virtual void EndFrame()                         = 0;
+    virtual void Present(bool vsync)                = 0;
+    virtual void WaitTillIdle()                     = 0;
+    virtual void CreateInputs(int inputsRequired)   = 0;
+    virtual void Destroy()                          = 0;
+
+    // ImGui
+    virtual void ImGuiInit()     = 0;
+    virtual void ImGuiNewFrame() = 0;
+    virtual void ImGuiRender()   = 0;
+    virtual void ImGuiShutdown() = 0;
+
+    virtual void BlackFrame() const  = 0;
+    virtual void Passthrough() const = 0;
+
+    virtual void SubmitInput(int slotNo, void* data, unsigned size) = 0;
 };
+
 } // namespace ShaderBeam
+
+#include "RenderContextD3D11.h"

@@ -35,6 +35,7 @@ public:
 
 private:
     Watcher       m_watcher;
+    RenderContext m_renderContext;
     Renderer      m_renderer;
     RenderThread  m_renderThread;
     ShaderManager m_shaderManager;

@@ -130,7 +130,7 @@ void Helpers::Throw(HRESULT hr, const char* action)
     if(FAILED(hr))
     {
         _com_error err(hr);
-        auto       error = err.ErrorMessage();        
+        auto       error = err.ErrorMessage();
         throw std::runtime_error(action + std::string("\r\n") + Helpers::WCharToString(error));
     }
 }
@@ -141,6 +141,14 @@ std::string Helpers::WCharToString(const wchar_t* text)
     utfString[255] = 0;
     WideCharToMultiByte(CP_UTF8, 0, text, -1, utfString, 255, NULL, NULL);
     return std::string(utfString);
+}
+
+std::wstring Helpers::StringToWString(const std::string& str)
+{
+    wchar_t wString[256];
+    wString[255] = 0;
+    MultiByteToWideChar(CP_UTF8, MB_PRECOMPOSED, str.c_str(), -1, wString, 255);
+    return std::wstring(wString);
 }
 
 } // namespace ShaderBeam

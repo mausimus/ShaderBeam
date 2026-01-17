@@ -138,7 +138,9 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="CaptureBase.h" />
+    <ClInclude Include="CaptureD3D11.h" />
     <ClInclude Include="CaptureDD.h" />
+    <ClInclude Include="CaptureImage.h" />
     <ClInclude Include="CaptureWGC.h" />
     <ClInclude Include="Charts.h" />
     <ClInclude Include="framework.h" />
@@ -147,9 +149,11 @@
     <ClInclude Include="ini.h" />
     <ClInclude Include="ProggyVectorRegular.h" />
     <ClInclude Include="RenderContext.h" />
+    <ClInclude Include="RenderContextD3D11.h" />
     <ClInclude Include="Shaders\CRTBeamSimulatorShader.h" />
     <ClInclude Include="ShaderProfile.h" />
     <ClInclude Include="ShaderManager.h" />
+    <ClInclude Include="SinglePassShaderD3D11.h" />
     <ClInclude Include="SinglePassShaderProfile.h" />
     <ClInclude Include="Shaders\SimpleBFIShader.h" />
     <ClInclude Include="Shaders\ShaderList.h" />
@@ -165,14 +169,17 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="CaptureBase.cpp" />
+    <ClCompile Include="CaptureD3D11.cpp" />
     <ClCompile Include="CaptureDD.cpp" />
+    <ClCompile Include="CaptureImage.cpp" />
     <ClCompile Include="CaptureWGC.cpp" />
     <ClCompile Include="Charts.cpp" />
     <ClCompile Include="Common.cpp" />
     <ClCompile Include="Helpers.cpp" />
+    <ClCompile Include="RenderContextD3D11.cpp" />
     <ClCompile Include="ShaderProfile.cpp" />
     <ClCompile Include="ShaderManager.cpp" />
-    <ClCompile Include="SinglePassShaderProfile.cpp" />
+    <ClCompile Include="SinglePassShaderD3D11.cpp" />
     <ClCompile Include="Watcher.cpp" />
     <ClCompile Include="Renderer.cpp" />
     <ClCompile Include="RenderThread.cpp" />

@@ -11,12 +11,14 @@ MIT License
 #include "Helpers.h"
 #include "CaptureDD.h"
 #include "CaptureWGC.h"
+#include "CaptureImage.h"
 
 namespace ShaderBeam
 {
 
 ShaderBeam::ShaderBeam() :
-    m_options(), m_ui(m_options, m_shaderManager), m_watcher(m_ui), m_renderer(m_options, m_ui, m_watcher, m_shaderManager), m_renderThread(m_options, m_ui, m_renderer)
+    m_options(), m_renderContext(m_options), m_ui(m_options, m_shaderManager, m_renderContext), m_watcher(m_ui),
+    m_renderer(m_options, m_ui, m_watcher, m_shaderManager, m_renderContext), m_renderThread(m_options, m_ui, m_renderer)
 { }
 
 void ShaderBeam::Create(HWND window)
@@ -33,12 +35,14 @@ void ShaderBeam::Create(HWND window)
     m_ui.m_displays = GetDisplays();
     m_ui.m_shaders  = m_shaderManager.GetShaders();
 
-    auto wgc = std::make_shared<CaptureWGC>(m_watcher, m_options);
+    auto wgc = std::make_shared<CaptureWGC>(m_watcher, m_options, m_renderer, m_renderContext);
     if(wgc->IsSupported())
         m_ui.m_captures.emplace_back((int)m_ui.m_captures.size(), wgc->m_name, wgc);
-    auto dd = std::make_shared<CaptureDD>(m_watcher, m_options);
+    auto dd = std::make_shared<CaptureDD>(m_watcher, m_options, m_renderer, m_renderContext);
     if(dd->IsSupported())
         m_ui.m_captures.emplace_back((int)m_ui.m_captures.size(), dd->m_name, dd);
+    auto ci = std::make_shared<CaptureImage>(m_watcher, m_options, m_renderer, m_renderContext);
+    m_ui.m_captures.emplace_back((int)m_ui.m_captures.size(), ci->m_name, ci);
 
     m_ui.m_monitorTypes.push_back("LCD");
     m_ui.m_monitorTypes.push_back("OLED");
@@ -116,11 +120,6 @@ void ShaderBeam::Start()
     m_options.crossAdapter     = m_options.shaderAdapterNo != m_options.captureAdapterNo;
     const auto& captureAdapter = m_ui.m_adapters.at(m_options.captureAdapterNo);
     const auto& shaderAdapter  = m_ui.m_adapters.at(m_options.shaderAdapterNo);
-    auto        captureDevice  = Helpers::CreateD3DDevice(captureAdapter.adapter.get());
-    auto        shaderDevice   = m_options.crossAdapter ? Helpers::CreateD3DDevice(shaderAdapter.adapter.get()) : captureDevice;
-
-    UpdateVsyncRate();
-
     const auto& captureDisplay = m_ui.m_displays.at(m_options.captureDisplayNo);
     const auto& shaderDisplay  = m_ui.m_displays.at(m_options.shaderDisplayNo);
 
@@ -132,16 +131,15 @@ void ShaderBeam::Start()
     if(m_options.useHdr)
         m_options.hardwareSrgb = false;
 
-    winrt::com_ptr<ID3D11DeviceContext> deviceContext;
-    shaderDevice->GetImmediateContext(deviceContext.put());
     const auto& capture = m_ui.m_captures[m_options.captureMethod].api;
     if(m_options.captureWindow && !capture->SupportsWindowCapture())
         m_options.captureWindow = NULL;
 
+    UpdateVsyncRate();
+
     try
     {
-        float dpi = (float)GetDpiForWindow(m_options.outputWindow);
-        m_ui.Start(m_options.outputWindow, dpi / USER_DEFAULT_SCREEN_DPI, shaderDevice, deviceContext);
+        m_renderContext.Create(shaderAdapter);
     }
     catch(std::exception& ex)
     {
@@ -152,7 +150,19 @@ void ShaderBeam::Start()
 
     try
     {
-        m_renderer.Start(shaderDevice, deviceContext);
+        float dpi = (float)GetDpiForWindow(m_options.outputWindow);
+        m_ui.Start(m_options.outputWindow, dpi / USER_DEFAULT_SCREEN_DPI);
+    }
+    catch(std::exception& ex)
+    {
+        MessageBoxA(m_options.outputWindow, ex.what(), SHADERBEAM_TITLE, MB_ICONERROR | MB_OK);
+        PostMessage(m_options.outputWindow, WM_DESTROY, 0, 0);
+        return;
+    }
+
+    try
+    {
+        m_renderer.Start();
     }
     catch(std::exception& ex)
     {
@@ -165,7 +175,7 @@ void ShaderBeam::Start()
 
     try
     {
-        capture->Start(captureDevice.as<IDXGIDevice>(), deviceContext);
+        capture->Start(captureAdapter);
     }
     catch(std::exception& ex)
     {

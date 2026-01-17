@@ -90,6 +90,18 @@
     <ClInclude Include="ini.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="RenderContextD3D11.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="SinglePassShaderD3D11.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="CaptureD3D11.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="CaptureImage.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Window.cpp">
@@ -128,9 +140,6 @@
     <ClCompile Include="Charts.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="SinglePassShaderProfile.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="ShaderProfile.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -138,6 +147,18 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="Common.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="RenderContextD3D11.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="SinglePassShaderD3D11.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="CaptureD3D11.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="CaptureImage.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

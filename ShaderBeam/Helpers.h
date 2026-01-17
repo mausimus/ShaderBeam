@@ -28,6 +28,7 @@ public:
     static float                        QPCToDeltaMs(ULONGLONG qpc);
     static void                         Throw(HRESULT hr, const char* action);
     static std::string                  WCharToString(const wchar_t* text);
+    static std::wstring                 StringToWString(const std::string& str);
 
 private:
     static HRESULT CreateD3DDevice(D3D_DRIVER_TYPE const type, winrt::com_ptr<ID3D11Device>& device);

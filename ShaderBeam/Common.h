@@ -11,6 +11,7 @@ namespace ShaderBeam
 {
 
 #define SHADERBEAM_TITLE "ShaderBeam v0.2"
+#define SB_D3D11
 
 #define MIN_SUBFRAMES 1
 #define MAX_SUBFRAMES 16
@@ -34,6 +35,13 @@ namespace ShaderBeam
 #define HOTKEY_QUIT_KEY 'Q'
 
 //#define RGB_TEST
+
+#ifdef SB_D3D11
+class SinglePassShaderD3D11;
+typedef SinglePassShaderD3D11 SinglePassShaderProfile;
+class RenderContextD3D11;
+typedef RenderContextD3D11 RenderContext;
+#endif
 
 struct AdapterInfo
 {

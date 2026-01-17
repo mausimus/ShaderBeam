@@ -96,12 +96,11 @@ public:
         m_framesPerHz = (float)renderContext.options.subFrames;
 
         // macros injected into the shader before compilation with non-adjustable constants (like resolution)
-        D3D_SHADER_MACRO macros[2] = {
+        std::map<std::string, std::string> macros {
             { "HARDWARE_SRGB", renderContext.options.hardwareSrgb ? "1" : "0" },
-            { NULL, NULL },
         };
 
-        SetShader(L"Shaders\\CRTBeamSimulator.hlsl", macros, renderContext);
+        SetShader("Shaders\\CRTBeamSimulator.hlsl", macros, renderContext);
         SetParameterBuffer(&m_params, sizeof(m_params), renderContext);
         CreatePipeline(renderContext);
     }
@@ -128,7 +127,7 @@ public:
         return !AntiRetentionRequired(renderContext);
     }
 
-    void OverrideInputs(const RenderContext& renderContext, const std::span<ID3D11ShaderResourceView*>& inputs)
+    void OverrideInputs(const RenderContext& renderContext, const std::span<void*>& inputs)
     {
         if(!AntiRetentionRequired(renderContext))
         {

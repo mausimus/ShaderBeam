@@ -12,11 +12,6 @@ MIT License
 namespace ShaderBeam
 {
 
-void ShaderProfile::Passthrough(const RenderContext& renderContext)
-{
-    renderContext.deviceContext->CopyResource(renderContext.outputTexture.get(), renderContext.inputTextures[renderContext.inputSlots[0]].get());
-}
-
 void ShaderProfile::AddParameter(const char* name, const char* description, float* value, float min, float max)
 {
     m_parameterInfos.push_back(ParameterInfo {

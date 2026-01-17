@@ -7,23 +7,23 @@ MIT License
 
 #pragma once
 
-#include "CaptureBase.h"
+#include "CaptureD3D11.h"
 #include "Watcher.h"
 
 namespace ShaderBeam
 {
 
-class CaptureDD : public CaptureBase
+class CaptureDD : public CaptureD3D11
 {
 public:
-    CaptureDD(Watcher& watcher, const Options& options);
+    CaptureDD(Watcher& watcher, const Options& options, Renderer& renderer, RenderContext& renderContext);
 
     bool IsSupported();
     bool SupportsWindowCapture();
 
 protected:
     void InternalStart();
-    bool InternalPoll(const winrt::com_ptr<ID3D11Texture2D>& outputTexture);
+    bool InternalPoll();
     void InternalStop();
 
 private:

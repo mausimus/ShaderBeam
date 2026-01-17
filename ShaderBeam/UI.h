@@ -12,6 +12,7 @@ MIT License
 
 struct ImFont;
 struct ImGuiStyle;
+class RenderContext;
 
 namespace ShaderBeam
 {
@@ -19,9 +20,9 @@ namespace ShaderBeam
 class UI
 {
 public:
-    UI(Options& options, ShaderManager& shaderManager);
+    UI(Options& options, ShaderManager& shaderManager, RenderContext& renderContext);
 
-    void Start(HWND window, float scale, winrt::com_ptr<ID3D11Device> device, winrt::com_ptr<ID3D11DeviceContext> context);
+    void Start(HWND window, float scale);
     bool Input(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
     bool MouseRequired();
     void Render();
@@ -75,6 +76,7 @@ private:
     ImFont*         m_largeFont;
     Options&        m_options;
     ShaderManager&  m_shaderManager;
+    RenderContext&  m_renderContext;
     bool            m_ready { false };
     bool            m_applyRequired { false };
     float           m_fontSize { 0 };

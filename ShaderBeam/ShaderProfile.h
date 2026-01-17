@@ -29,7 +29,6 @@ public:
     virtual bool SupportsResync(const RenderContext& renderContext) const;
 
 protected:
-    void                       Passthrough(const RenderContext& renderContext);
     std::map<int, std::string> m_empty;
 
     void AddParameter(const char* name, const char* description, float* value, float min, float max);

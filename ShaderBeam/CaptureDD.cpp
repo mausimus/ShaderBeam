@@ -13,7 +13,8 @@ MIT License
 namespace ShaderBeam
 {
 
-CaptureDD::CaptureDD(Watcher& watcher, const Options& options) : CaptureBase(watcher, options), m_watcher(watcher)
+CaptureDD::CaptureDD(Watcher& watcher, const Options& options, Renderer& renderer, RenderContext& renderContext) :
+    CaptureD3D11(watcher, options, renderer, renderContext), m_watcher(watcher)
 {
     m_name = "Desktop Duplication";
 }
@@ -62,7 +63,7 @@ void CaptureDD::InternalStop()
     m_height             = 0;
 }
 
-bool CaptureDD::InternalPoll(const winrt::com_ptr<ID3D11Texture2D>& outputTexture)
+bool CaptureDD::InternalPoll()
 {
     if(!m_desktopDuplication || !m_capturedOutput)
         return false;
@@ -84,7 +85,7 @@ bool CaptureDD::InternalPoll(const winrt::com_ptr<ID3D11Texture2D>& outputTextur
             m_height = desc.Height;
         }
 
-        CopyToOutput(texture, m_width, m_height, outputTexture);
+        CopyToOutput(texture, m_width, m_height);
 
         THROW(m_desktopDuplication->ReleaseFrame(), "Unable to Release Frame");
         return true;

@@ -52,8 +52,7 @@ void RenderThread::PollCapture()
 #ifdef RGB_TEST
     m_renderer.RollInput(true);
 #else
-    bool newFrame = m_capture->Poll(m_renderer.GetNextInput());
-    m_renderer.RollInput(newFrame);
+    bool newFrame = m_capture->Poll();
     if(newFrame && m_options.autoSync && m_renderer.SupportsResync())
     {
         if(m_nextResync-- == 0)

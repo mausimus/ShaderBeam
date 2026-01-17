@@ -21,18 +21,19 @@ class CaptureBase;
 class Renderer
 {
 public:
-    Renderer(const Options& options, UI& ui, Watcher& watcher, ShaderManager& shaderManager);
+    Renderer(const Options& options, UI& ui, Watcher& watcher, ShaderManager& shaderManager, RenderContext& renderContext);
 
-    void Start(winrt::com_ptr<ID3D11Device> device, winrt::com_ptr<ID3D11DeviceContext> context);
+    void Start();
     void Stop();
     void Render(bool present, bool ui = true);
     void Present(bool vsync);
 
-    const winrt::com_ptr<ID3D11Texture2D>& GetNextInput() const;
-    bool                                   NewInputRequired() const;
-    bool                                   SupportsResync() const;
-    void                                   RollInput(bool newFrame);
-    void                                   Skip(int numFrames);
+    bool NewInputRequired() const;
+    bool SupportsResync() const;
+    void Skip(int numFrames);
+
+    void SubmitInput(const winrt::com_ptr<ID3D11Texture2D>& input, int width, int height, int x, int y);
+    void SubmitInput(void* data, unsigned size);
 
     void Benchmark(const std::shared_ptr<CaptureBase>& capture);
 
@@ -41,22 +42,11 @@ private:
     UI&            m_ui;
     Watcher&       m_watcher;
     Charts         m_charts;
-    RenderContext  m_renderContext;
+    RenderContext& m_renderContext;
     ShaderManager& m_shaderManager;
 
-    void Create();
-    void CreateInputs();
+    void RollInput(bool newFrame);
     void Destroy();
-    void DestroyInputs();
-    void WaitTillIdle();
     int  GetNextSlot() const;
-
-    winrt::com_ptr<IDXGISwapChain1>         m_swapChain { nullptr };
-    winrt::com_ptr<ID3D11RasterizerState>   m_rasterizerState { nullptr };
-    winrt::com_ptr<ID3D11DepthStencilState> m_depthStencilState { nullptr };
-    winrt::com_ptr<ID3D11RenderTargetView>  m_uiTargetView { nullptr };
-#if _DEBUG
-    winrt::com_ptr<ID3D11Debug> m_debug { nullptr };
-#endif
 };
 } // namespace ShaderBeam

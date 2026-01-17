@@ -9,11 +9,10 @@ MIT License
 
 #include "UI.h"
 #include "Helpers.h"
-#include "CaptureBase.h"
+#include "CaptureD3D11.h"
 
 #include "imgui.h"
 #include "backends\imgui_impl_win32.h"
-#include "backends\imgui_impl_dx11.h"
 
 #include "ProggyVectorRegular.h"
 
@@ -42,16 +41,16 @@ char SHADERBEAM_HOTKEYS[] = "Global hotkeys:\n\n"
 namespace ShaderBeam
 {
 
-UI::UI(Options& options, ShaderManager& shaderManager) : m_options(options), m_shaderManager(shaderManager) { }
+UI::UI(Options& options, ShaderManager& shaderManager, RenderContext& renderContext) : m_options(options), m_shaderManager(shaderManager), m_renderContext(renderContext) { }
 
-void UI::Start(HWND window, float scale, winrt::com_ptr<ID3D11Device> device, winrt::com_ptr<ID3D11DeviceContext> context)
+void UI::Start(HWND window, float scale)
 {
     IMGUI_CHECKVERSION();
     ImGui::CreateContext();
     ImGui::StyleColorsDark();
 
     ImGui_ImplWin32_Init(window);
-    ImGui_ImplDX11_Init(device.get(), context.get());
+    m_renderContext.ImGuiInit();
 
     ImGuiStyle& style      = ImGui::GetStyle();
     style.Alpha            = 1;
@@ -91,7 +90,7 @@ void UI::Start(HWND window, float scale, winrt::com_ptr<ID3D11Device> device, wi
     m_captureWindowName.clear();
     for(const auto& window : m_inputs)
     {
-        if(window.hwnd == m_pending.captureWindow)
+        if(window.hwnd == m_options.captureWindow && window.captureDisplayNo == m_options.captureDisplayNo && window.captureMethod == m_options.captureMethod)
         {
             m_captureWindowName = window.name;
             break;
@@ -152,7 +151,7 @@ static void ShowAlertMarker(const char* desc)
 }
 void UI::Render()
 {
-    ImGui_ImplDX11_NewFrame();
+    m_renderContext.ImGuiNewFrame();
     ImGui_ImplWin32_NewFrame();
     ImGui::NewFrame();
     if(m_options.ui)
@@ -561,14 +560,14 @@ void UI::Render()
         RenderBanner();
     }
     ImGui::Render();
-    ImGui_ImplDX11_RenderDrawData(ImGui::GetDrawData());
+    m_renderContext.ImGuiRender();
 }
 
 void UI::Stop()
 {
     m_ready = false;
 
-    ImGui_ImplDX11_Shutdown();
+    m_renderContext.ImGuiShutdown();
     ImGui_ImplWin32_Shutdown();
     ImGui::DestroyContext();
 

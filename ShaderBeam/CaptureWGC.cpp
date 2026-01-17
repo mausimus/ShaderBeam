@@ -16,7 +16,7 @@ MIT License
 namespace ShaderBeam
 {
 
-CaptureWGC::CaptureWGC(Watcher& watcher, const Options& options) : CaptureBase(watcher, options)
+CaptureWGC::CaptureWGC(Watcher& watcher, const Options& options, Renderer& renderer, RenderContext& renderContext) : CaptureD3D11(watcher, options, renderer, renderContext)
 {
     m_name = "Windows Graphics Capture";
 }
@@ -81,7 +81,7 @@ void CaptureWGC::InternalStop()
         m_framePool.Close();
 }
 
-bool CaptureWGC::InternalPoll(const winrt::com_ptr<ID3D11Texture2D>& outputTexture)
+bool CaptureWGC::InternalPoll()
 {
     if(m_captureWindow && !IsWindow(m_captureWindow))
     {
@@ -107,7 +107,7 @@ bool CaptureWGC::InternalPoll(const winrt::com_ptr<ID3D11Texture2D>& outputTextu
         auto size      = frame.ContentSize();
         auto timestamp = frame.SystemRelativeTime();
         m_watcher.FrameReceived(Helpers::QPCToTicks(timestamp.count()));
-        CopyToOutput(texture, size.Width, size.Height, outputTexture);
+        CopyToOutput(texture, size.Width, size.Height);
         return true;
     }
     return false;
