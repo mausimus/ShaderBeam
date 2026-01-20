@@ -91,7 +91,7 @@ void UI::Start(HWND window, float scale, winrt::com_ptr<ID3D11Device> device, wi
     m_captureWindowName.clear();
     for(const auto& window : m_inputs)
     {
-        if(window.hwnd == m_pending.captureWindow)
+        if(window.hwnd == m_pending.captureWindow && window.captureDisplayNo == m_pending.captureAdapterNo && window.captureMethod == m_pending.captureMethod)
         {
             m_captureWindowName = window.name;
             break;
