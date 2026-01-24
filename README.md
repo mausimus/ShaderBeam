@@ -71,7 +71,8 @@ not being given enough GPU time by the OS to maintain its frame rate. Things you
 
 * Apply Performance Tips above
 
-* Try changing Queued Frames to see if flashing stops at some point (this will unfortunately add some latency)
+* Try changing Queued Frames to see if flashing stops at some point (this will unfortunately add some latency);
+make sure to try 1 as well as depending on game's presentation it might provide best results
 
 * If your GPU appears multiple times on the list, try using the second version as
 Shader GPU. This influences GPU scheduling and helps on some setups
