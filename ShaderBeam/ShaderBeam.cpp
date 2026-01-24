@@ -224,7 +224,26 @@ std::vector<AdapterInfo> ShaderBeam::GetAdapters()
             if((desc.VendorId == 0x1414) && (desc.DeviceId == 0x8c))
                 continue; // Microsoft Basic Render Driver
 
-            auto name = std::string("#") + std::to_string(no + 1) + ": " + Helpers::WCharToString(desc.Description);
+            const char* preempt = "";
+            switch(desc.GraphicsPreemptionGranularity)
+            {
+            case DXGI_GRAPHICS_PREEMPTION_DMA_BUFFER_BOUNDARY:
+                preempt = " (D)";
+                break;
+            case DXGI_GRAPHICS_PREEMPTION_PRIMITIVE_BOUNDARY:
+                preempt = " (P)";
+                break;
+            case DXGI_GRAPHICS_PREEMPTION_TRIANGLE_BOUNDARY:
+                preempt = " (T)";
+                break;
+            case DXGI_GRAPHICS_PREEMPTION_PIXEL_BOUNDARY:
+                preempt = " (PX)";
+                break;
+            case DXGI_GRAPHICS_PREEMPTION_INSTRUCTION_BOUNDARY:
+                preempt = " (I)";
+                break;
+            }
+            auto name = std::string("#") + std::to_string(no + 1) + ": " + Helpers::WCharToString(desc.Description) + std::string(preempt);
             adapters.emplace_back(no++, name, adapter, desc.AdapterLuid);
         }
     }

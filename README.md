@@ -52,16 +52,29 @@ Click to view on YouTube
 Due to extreme timing requirements ShaderBeam performs best in simple setups
 with no other apps or overlays running. Make sure to try these:
 
-* Disable "Hardware-accelerated GPU Scheduling" (Windows Settings: Display -> Graphics -> Advanced)
 * Disable VRR (G-Sync, FreeSync etc.) and Smart VSync (ShaderBeam needs to run at VSync)
-* Disable HDR, it's not currently supported
-* Disable MPO using registry files from [here](https://nvidia.custhelp.com/app/answers/detail/a_id/5157/~/after-updating-to-nvidia-game-ready-driver-461.09-or-newer%2C-some-desktop-apps) 
 * Use only one monitor and disconnect any others
 * Set GPU settings to maximum performance (NVIDIA Control Panel: Power management mode)
 * Ensure "Background Application Max Frame Rate" is Off (NVIDIA Control Panel)
+
+Other options to try, results will depend on the game:
+
+* Disable "Hardware-accelerated GPU Scheduling" (Windows Settings: Display -> Graphics -> Advanced)
+* Disable MPO using registry files from [here](https://nvidia.custhelp.com/app/answers/detail/a_id/5157/~/after-updating-to-nvidia-game-ready-driver-461.09-or-newer%2C-some-desktop-apps) 
 * Use Process Lasso to max GPU priority of ShaderBeam process
-* Desktop can be a mixed bag, best used with borderless fullscreen games
 * After you start your game, select its window as Capture Input instead of whole Desktop
+
+### Single GPU setups
+
+With more demanding games a common issue is irregular flashing which is caused by ShaderBeam
+not being given enough GPU time by the OS to maintain its frame rate. Things you can try:
+
+* Apply Performance Tips above
+
+* Try increasing Queued Frames to see if flashing stops at some point (this will unfortunately add some latency)
+
+* If your GPU appears multiple times on the list, try using the second version as
+Shader GPU. This influences GPU scheduling and helps on some setups
 
 ### Second GPU provides best experience
 
@@ -76,8 +89,8 @@ your primary GPU. In ShaderBeam, simply change Shader GPU to your iGPU or second
 ### Usage Guide
 
 > [!IMPORTANT]
-> If you have an OLED, make sure to select it to disable LCD Anti-retention. It causes occasional
-> stutters as it desyncs CRT refresh rate from content refresh rate, and is not needed for OLEDs.
+> If you have an OLED, make sure to set your Monitor Type as that will disable LCD Anti-retention. It causes occasional
+> stutters and adds input lag.
 
 * ShaderBeam is fullscreen-only, you can change the display to use via UI.
 * Upon startup ShaderBeam will automatically start simulation using default parameters.
@@ -98,16 +111,20 @@ This happens when ShaderBeam isn't given enough GPU time by the OS to present a 
 on time. It's more likely to happen the heavier game you are playing, and also some
 games (especially Unreal Engine ones) create unavoidable GPU stalls even at low details.
 
-Try all the Tips above, especially disabling HAGS and MPO, or an older game.
-The best way to avoid this issue is to use a **second GPU for ShaderBeam**.
-You can also try "Simple BFI" shader which is much simpler and extremely fast,
-but can leave temporary afterimages after longer use.
-
 Also double-check that Rendered FPS equals Display Hz. If Rendered FPS is
 below Display Hz it means your Shader GPU isn't keeping up (try lower resolution
 or refresh rate). If Rendered FPS is above Display Hz it means VSync
 isn't being applied - check GPU settings and disable any VSync overrides
 (like Smart VSync etc.).
+
+Try increasing Queued Frames to see if flashing stops at some point (this will unfortunately add latency).
+
+If your GPU appears multiple times on the list, try using the second version as
+Shader GPU. This influences GPU scheduling and helps on some setups.
+
+The best way to avoid this issue is to use a **second GPU for ShaderBeam**.
+You can also try "Simple BFI" shader which is much simpler and extremely fast,
+but can leave temporary afterimages after longer use.
 
 #### > Game capture is choppy
 

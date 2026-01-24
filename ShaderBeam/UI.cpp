@@ -19,7 +19,7 @@ MIT License
 
 extern IMGUI_IMPL_API LRESULT ImGui_ImplWin32_WndProcHandler(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
 
-const char* SHADERBEAM_ABOUT = "                " SHADERBEAM_TITLE "\n"
+const char* SHADERBEAM_ABOUT = "               " SHADERBEAM_TITLE "\n"
                                "            (c) 2025-2026 mausimus\n"
                                "     https://github.com/mausimus/ShaderBeam\n"
                                "         Distributed under MIT License\n"
@@ -91,7 +91,7 @@ void UI::Start(HWND window, float scale, winrt::com_ptr<ID3D11Device> device, wi
     m_captureWindowName.clear();
     for(const auto& window : m_inputs)
     {
-        if(window.hwnd == m_pending.captureWindow && window.captureDisplayNo == m_pending.captureAdapterNo && window.captureMethod == m_pending.captureMethod)
+        if(window.hwnd == m_pending.captureWindow && window.captureDisplayNo == m_pending.captureDisplayNo && window.captureMethod == m_pending.captureMethod)
         {
             m_captureWindowName = window.name;
             break;
@@ -338,8 +338,7 @@ void UI::Render()
                 }
                 ImGui::EndCombo();
             }
-            ShowHelpMarker("GPU used for rendering. If you have another dGPU or iGPU, try using it here for best experience.\nSometimes DXGI splits physical cards into multiple "
-                           "virutal ones so duplicates are possible.");
+            ShowHelpMarker("GPU used for rendering. If you have another dGPU or iGPU, try using it here for best experience.\nIf you have a single GPU but are seeing it multiple times, try using the second version as Shader GPU here.");
 
             if(ImGui::BeginCombo("Capture GPU", m_adapters[m_pending.captureAdapterNo].name.c_str(), 0))
             {
@@ -359,7 +358,7 @@ void UI::Render()
                 ImGui::EndCombo();
             }
             ShowHelpMarker(
-                "GPU used for capture. This should be your primary/gaming GPU.\nSometimes DXGI splits physical cards into multiple virutal ones so duplicates are possible.");
+                "GPU used for capture. This should be your primary/gaming GPU.");
 
             if(ImGui::BeginCombo("Split-screen", m_splitScreens[m_pending.splitScreen].c_str(), 0))
             {
@@ -397,7 +396,7 @@ void UI::Render()
                 }
                 ImGui::EndCombo();
             }
-            ShowHelpMarker("Queued presentation frames, trade-off between input latency and stability. These are output (Display Hz) frames. Driver default is usually 3.");
+            ShowHelpMarker("Queued presentation frames, increase if you're getting irregular flashing.\nTrade-off between input latency and stability.\nThese are output (Display Hz) frames. Driver default is usually 3.");
 
             if(ImGui::Checkbox("Auto-Sync", &m_pending.autoSync))
             {
