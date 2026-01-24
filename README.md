@@ -71,7 +71,7 @@ not being given enough GPU time by the OS to maintain its frame rate. Things you
 
 * Apply Performance Tips above
 
-* Try increasing Queued Frames to see if flashing stops at some point (this will unfortunately add some latency)
+* Try changing Queued Frames to see if flashing stops at some point (this will unfortunately add some latency)
 
 * If your GPU appears multiple times on the list, try using the second version as
 Shader GPU. This influences GPU scheduling and helps on some setups
@@ -117,7 +117,8 @@ or refresh rate). If Rendered FPS is above Display Hz it means VSync
 isn't being applied - check GPU settings and disable any VSync overrides
 (like Smart VSync etc.).
 
-Try increasing Queued Frames to see if flashing stops at some point (this will unfortunately add latency).
+Try changing Queued Frames to see if flashing stops at some point (this will unfortunately add latency).
+Surprisingly, some games work best with 1 queued frame and worse with more than that.
 
 If your GPU appears multiple times on the list, try using the second version as
 Shader GPU. This influences GPU scheduling and helps on some setups.
