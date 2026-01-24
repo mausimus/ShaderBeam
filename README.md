@@ -20,9 +20,9 @@ check out its sister app [ShaderGlass](https://github.com/mausimus/ShaderGlass).
 
 ### Download
 
-Latest stable release (v0.2, 15 Jan 2026)
+Latest stable release (v0.2.1, 24 Jan 2026)
 
-* https://github.com/mausimus/ShaderBeam/releases/download/v0.2/ShaderBeam-0.2-win-x64.zip
+* https://github.com/mausimus/ShaderBeam/releases/download/v0.2.1/ShaderBeam-0.2.1-win-x64.zip
 
 [Report feedback here](https://github.com/mausimus/ShaderBeam/discussions/20)
 
