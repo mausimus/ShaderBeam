@@ -10,6 +10,8 @@ MIT License
 #include "CaptureBase.h"
 #include "Watcher.h"
 
+#ifdef _WIN32
+
 namespace ShaderBeam
 {
 
@@ -42,3 +44,5 @@ private:
     HWND                                                          m_captureWindow { NULL };
 };
 } // namespace ShaderBeam
+
+#endif

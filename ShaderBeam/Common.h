@@ -7,6 +7,8 @@ MIT License
 
 #pragma once
 
+struct GLFWwindow;
+
 namespace ShaderBeam
 {
 
@@ -20,6 +22,7 @@ namespace ShaderBeam
 #define WM_USER_RESTART (WM_USER)
 #define WM_USER_BENCHMARK (WM_USER + 1)
 #define WM_USER_NOWINDOW (WM_USER + 2)
+#define WM_USER_QUIT (WM_USER + 3)
 
 #define HOTKEY_TOGGLEUI 0
 #define HOTKEY_BRINGTOFRONT 1
@@ -148,7 +151,9 @@ struct Options
     unsigned gpuThreadPriority { 29 };
 
     // derived
-    HWND        outputWindow { 0 };
+    GLFWwindow* window { nullptr };
+    HWND        hwnd { 0 };
+    float       scale { 1.0f };
     HMONITOR    captureMonitor { 0 };
     HWND        captureWindow { 0 };
     unsigned    outputWidth { 0 };
@@ -162,4 +167,9 @@ struct Options
     void Save(const ShaderManager& shaderManager) const;
     void Load(ShaderManager& shaderManager);
 };
+
+// globals
+void AppMessage(UINT message, WPARAM wParam, LPARAM lParam);
+void ErrorMessage(const char* msg);
+
 } // namespace ShaderBeam

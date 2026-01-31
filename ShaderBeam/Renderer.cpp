@@ -226,7 +226,7 @@ void Renderer::Create()
     // fun fact: on Intel Arc setting DXGI_SWAP_CHAIN_FLAG_FRAME_LATENCY_WAITABLE_OBJECT
     // makes Present(1) not wait on vsync any more and BSODs Windows
 
-    THROW(dxgiFactory->CreateSwapChainForHwnd(m_renderContext.device.get(), m_options.outputWindow, &d3d11SwapChainDesc, 0, 0, m_swapChain.put()), "Unable to create SwapChain");
+    THROW(dxgiFactory->CreateSwapChainForHwnd(m_renderContext.device.get(), m_options.hwnd, &d3d11SwapChainDesc, 0, 0, m_swapChain.put()), "Unable to create SwapChain");
 
     /*
     *  works if using Output for another display, but breaks WGC capture if a window is dragged onto it for example
@@ -363,8 +363,11 @@ void Renderer::Destroy()
         m_renderContext.deviceContext = nullptr;
     }
 #if _DEBUG
-    m_debug->ReportLiveDeviceObjects(D3D11_RLDO_DETAIL | D3D11_RLDO_IGNORE_INTERNAL);
-    m_debug = nullptr;
+    if(m_debug)
+    {
+        m_debug->ReportLiveDeviceObjects(D3D11_RLDO_DETAIL | D3D11_RLDO_IGNORE_INTERNAL);
+        m_debug = nullptr;
+    }
 #endif
     m_renderContext.device = nullptr;
 }

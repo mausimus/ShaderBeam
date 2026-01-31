@@ -21,7 +21,7 @@ class ShaderBeam
 public:
     ShaderBeam();
 
-    void Create(HWND window);
+    void Create(HWND hwnd, GLFWwindow* window);
     void Start();
     void Stop();
     void Destroy();

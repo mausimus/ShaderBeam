@@ -11,6 +11,7 @@ MIT License
 #include "Helpers.h"
 #include "CaptureDD.h"
 #include "CaptureWGC.h"
+#include "CaptureFile.h"
 
 namespace ShaderBeam
 {
@@ -19,26 +20,26 @@ ShaderBeam::ShaderBeam() :
     m_options(), m_ui(m_options, m_shaderManager), m_watcher(m_ui), m_renderer(m_options, m_ui, m_watcher, m_shaderManager), m_renderThread(m_options, m_ui, m_renderer)
 { }
 
-void ShaderBeam::Create(HWND window)
+void ShaderBeam::Create(HWND hwnd, GLFWwindow* window)
 {
-    m_options.outputWindow = window;
-
-    RegisterHotKey(m_options.outputWindow, HOTKEY_TOGGLEUI, MOD_CONTROL | MOD_SHIFT, HOTKEY_TOGGLEUI_KEY);
-    RegisterHotKey(m_options.outputWindow, HOTKEY_BRINGTOFRONT, MOD_CONTROL | MOD_SHIFT, HOTKEY_BRINGTOFRONT_KEY);
-    //RegisterHotKey(m_options.outputWindow, HOTKEY_STOPSTART, MOD_CONTROL | MOD_SHIFT, HOTKEY_STOPSTART_KEY);
-    RegisterHotKey(m_options.outputWindow, HOTKEY_RESTART, MOD_CONTROL | MOD_SHIFT, HOTKEY_RESTART_KEY);
-    RegisterHotKey(m_options.outputWindow, HOTKEY_QUIT, MOD_CONTROL | MOD_SHIFT, HOTKEY_QUIT_KEY);
+    m_options.hwnd   = hwnd;
+    m_options.window = window;
 
     m_ui.m_adapters = GetAdapters();
     m_ui.m_displays = GetDisplays();
     m_ui.m_shaders  = m_shaderManager.GetShaders();
 
+#ifdef _WIN32
     auto wgc = std::make_shared<CaptureWGC>(m_watcher, m_options);
     if(wgc->IsSupported())
         m_ui.m_captures.emplace_back((int)m_ui.m_captures.size(), wgc->m_name, wgc);
     auto dd = std::make_shared<CaptureDD>(m_watcher, m_options);
     if(dd->IsSupported())
         m_ui.m_captures.emplace_back((int)m_ui.m_captures.size(), dd->m_name, dd);
+#endif
+    auto fc = std::make_shared<CaptureFile>(m_watcher, m_options);
+    if(fc->IsSupported())
+        m_ui.m_captures.emplace_back((int)m_ui.m_captures.size(), fc->m_name, fc);
 
     m_ui.m_monitorTypes.push_back("LCD");
     m_ui.m_monitorTypes.push_back("OLED");
@@ -59,16 +60,7 @@ void ShaderBeam::Create(HWND window)
     DefaultOptions();
 }
 
-void ShaderBeam::Destroy()
-{
-    UnregisterHotKey(m_options.outputWindow, HOTKEY_TOGGLEUI);
-    UnregisterHotKey(m_options.outputWindow, HOTKEY_BRINGTOFRONT);
-    //UnregisterHotKey(m_options.outputWindow, HOTKEY_STOPSTART);
-    UnregisterHotKey(m_options.outputWindow, HOTKEY_RESTART);
-    UnregisterHotKey(m_options.outputWindow, HOTKEY_QUIT);
-
-    timeEndPeriod(1);
-}
+void ShaderBeam::Destroy() { }
 
 void ShaderBeam::RunBenchmark()
 {
@@ -140,13 +132,12 @@ void ShaderBeam::Start()
 
     try
     {
-        float dpi = (float)GetDpiForWindow(m_options.outputWindow);
-        m_ui.Start(m_options.outputWindow, dpi / USER_DEFAULT_SCREEN_DPI, shaderDevice, deviceContext);
+        m_ui.Start(m_options.window, m_options.scale, shaderDevice, deviceContext);
     }
     catch(std::exception& ex)
     {
-        MessageBoxA(m_options.outputWindow, ex.what(), SHADERBEAM_TITLE, MB_ICONERROR | MB_OK);
-        PostMessage(m_options.outputWindow, WM_DESTROY, 0, 0);
+        ErrorMessage(ex.what());
+        AppMessage(WM_USER_QUIT, 0, 0);
         return;
     }
 
@@ -156,8 +147,8 @@ void ShaderBeam::Start()
     }
     catch(std::exception& ex)
     {
-        MessageBoxA(m_options.outputWindow, ex.what(), SHADERBEAM_TITLE, MB_ICONERROR | MB_OK);
-        PostMessage(m_options.outputWindow, WM_DESTROY, 0, 0);
+        ErrorMessage(ex.what());
+        AppMessage(WM_USER_QUIT, 0, 0);
         return;
     }
 

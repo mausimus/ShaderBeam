@@ -143,6 +143,23 @@ void CaptureBase::CopyStagingToOutput(const winrt::com_ptr<ID3D11Texture2D>& out
     m_outputContext->Unmap(outputTexture.get(), 0);
 }
 
+void CaptureBase::CopyToOutput(uint32_t* data, int size, const winrt::com_ptr<ID3D11Texture2D>& outputTexture)
+{
+    if(m_stopping || size == 0)
+        return;
+
+    D3D11_MAPPED_SUBRESOURCE renderResource;
+    THROW(m_outputContext->Map(outputTexture.get(), 0, D3D11_MAP_WRITE_DISCARD, 0, &renderResource), "Unable to map render texture");
+
+    if(size == renderResource.DepthPitch)
+    {
+        // copy between mapped textures
+        memcpy(renderResource.pData, data, size);
+    }
+
+    m_outputContext->Unmap(outputTexture.get(), 0);
+}
+
 void CaptureBase::CopyTrimToOutputSize(ID3D11DeviceContext* context, ID3D11Texture2D* output, ID3D11Texture2D* source, int width, int height)
 {
     if(width == m_options.outputWidth && height == m_options.outputHeight && m_windowX == 0 && m_windowY == 0)

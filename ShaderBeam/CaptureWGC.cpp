@@ -76,9 +76,15 @@ void CaptureWGC::InternalStart()
 void CaptureWGC::InternalStop()
 {
     if(m_session)
+    {
         m_session.Close();
+        m_session = nullptr;
+    }
     if(m_framePool)
+    {
         m_framePool.Close();
+        m_framePool = nullptr;
+    }
 }
 
 bool CaptureWGC::InternalPoll(const winrt::com_ptr<ID3D11Texture2D>& outputTexture)
@@ -86,7 +92,7 @@ bool CaptureWGC::InternalPoll(const winrt::com_ptr<ID3D11Texture2D>& outputTextu
     if(m_captureWindow && !IsWindow(m_captureWindow))
     {
         // window closed, restart capture with desktop
-        PostMessage(m_options.outputWindow, WM_USER_NOWINDOW, 0, 0);
+        AppMessage(WM_USER_NOWINDOW, 0, 0);
         return false;
     }
 

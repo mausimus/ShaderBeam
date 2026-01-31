@@ -12,7 +12,7 @@ MIT License
 #include "CaptureBase.h"
 
 #include "imgui.h"
-#include "backends\imgui_impl_win32.h"
+#include "backends\imgui_impl_glfw.h"
 #include "backends\imgui_impl_dx11.h"
 
 #include "ProggyVectorRegular.h"
@@ -44,13 +44,13 @@ namespace ShaderBeam
 
 UI::UI(Options& options, ShaderManager& shaderManager) : m_options(options), m_shaderManager(shaderManager) { }
 
-void UI::Start(HWND window, float scale, winrt::com_ptr<ID3D11Device> device, winrt::com_ptr<ID3D11DeviceContext> context)
+void UI::Start(GLFWwindow* window, float scale, winrt::com_ptr<ID3D11Device> device, winrt::com_ptr<ID3D11DeviceContext> context)
 {
     IMGUI_CHECKVERSION();
     ImGui::CreateContext();
     ImGui::StyleColorsDark();
 
-    ImGui_ImplWin32_Init(window);
+    ImGui_ImplGlfw_InitForOther(window, true);
     ImGui_ImplDX11_Init(device.get(), context.get());
 
     ImGuiStyle& style      = ImGui::GetStyle();
@@ -107,17 +107,6 @@ bool UI::MouseRequired()
     return m_ready && m_options.ui && ImGui::GetIO().WantCaptureMouse;
 }
 
-bool UI::Input(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
-{
-    try
-    {
-        return m_ready && m_options.ui && ImGui_ImplWin32_WndProcHandler(hWnd, msg, wParam, lParam);
-    }
-    catch(...)
-    { }
-    return false;
-}
-
 bool UI::RenderRequired() const
 {
     return m_ready && (m_options.ui || m_options.banner);
@@ -153,7 +142,7 @@ static void ShowAlertMarker(const char* desc)
 void UI::Render()
 {
     ImGui_ImplDX11_NewFrame();
-    ImGui_ImplWin32_NewFrame();
+    ImGui_ImplGlfw_NewFrame();
     ImGui::NewFrame();
     if(m_options.ui)
     {
@@ -204,15 +193,15 @@ void UI::Render()
 
             ImGui::SameLine();
             if(ImGui::Button("Benchmark"))
-                PostMessage(m_options.outputWindow, WM_USER_BENCHMARK, 0, 0);
+                AppMessage(WM_USER_BENCHMARK, 0, 0);
 
             ImGui::SameLine();
             if(ImGui::Button("Restart"))
-                PostMessage(m_options.outputWindow, WM_USER_RESTART, 0, 0);
+                AppMessage(WM_USER_RESTART, 0, 0);
 
             ImGui::SameLine();
             if(ImGui::Button("Quit"))
-                PostMessage(m_options.outputWindow, WM_DESTROY, 0, 0);
+                AppMessage(WM_USER_QUIT, 0, 0);
 
             ImGui::SameLine();
             ImGui::Checkbox("Show Banner", &m_options.banner);
@@ -429,7 +418,7 @@ void UI::Render()
             if(ImGui::Button("Apply Changes"))
             {
                 ApplyPendingChanges();
-                PostMessage(m_options.outputWindow, WM_USER_RESTART, 0, 0);
+                AppMessage(WM_USER_RESTART, 0, 0);
             }
             if(applyRequired)
             {
@@ -452,7 +441,7 @@ void UI::Render()
                         if(shader.no != m_options.shaderProfileNo)
                         {
                             m_options.shaderProfileNo = shader.no;
-                            PostMessage(m_options.outputWindow, WM_USER_RESTART, 0, 0);
+                            AppMessage(WM_USER_RESTART, 0, 0);
                         }
                     }
                     if(selected)
@@ -568,7 +557,7 @@ void UI::Stop()
     m_ready = false;
 
     ImGui_ImplDX11_Shutdown();
-    ImGui_ImplWin32_Shutdown();
+    ImGui_ImplGlfw_Shutdown();
     ImGui::DestroyContext();
 
     m_smallFont   = nullptr;
@@ -719,7 +708,7 @@ void UI::AddWindow(HWND hWnd)
 {
     wchar_t name[128];
     wchar_t wclass[128];
-    if(hWnd != m_options.outputWindow && IsWindowVisible(hWnd) && IsAltTabWindow(hWnd) && !IsIconic(hWnd) && GetWindowText(hWnd, name, 127))
+    if(hWnd != m_options.hwnd && IsWindowVisible(hWnd) && IsAltTabWindow(hWnd) && !IsIconic(hWnd) && GetWindowText(hWnd, name, 127))
     {
         auto style      = GetWindowLongPtr(hWnd, GWL_STYLE);
         bool fullscreen = !(style & WS_CAPTION) && !(style & WS_THICKFRAME);

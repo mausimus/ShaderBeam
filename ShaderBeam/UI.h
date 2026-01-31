@@ -21,8 +21,7 @@ class UI
 public:
     UI(Options& options, ShaderManager& shaderManager);
 
-    void Start(HWND window, float scale, winrt::com_ptr<ID3D11Device> device, winrt::com_ptr<ID3D11DeviceContext> context);
-    bool Input(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
+    void Start(GLFWwindow* window, float scale, winrt::com_ptr<ID3D11Device> device, winrt::com_ptr<ID3D11DeviceContext> context);
     bool MouseRequired();
     void Render();
     void Stop();

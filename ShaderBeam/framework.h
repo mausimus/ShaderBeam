@@ -25,6 +25,8 @@ MIT License
 #include <algorithm>
 #include <filesystem>
 #include <map>
+#include <deque>
+#include <mutex>
 
 #include <winrt/Windows.Foundation.h>
 #include <winrt/Windows.Foundation.Collections.h>

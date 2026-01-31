@@ -40,6 +40,7 @@ protected:
     virtual void InternalStop()                                                     = 0;
 
     void CopyToOutput(const winrt::com_ptr<ID3D11Texture2D>& capturedFrame, int width, int height, const winrt::com_ptr<ID3D11Texture2D>& outputTexture);
+    void CopyToOutput(uint32_t* data, int size, const winrt::com_ptr<ID3D11Texture2D>& outputTexture);
 
 private:
     winrt::com_ptr<ID3D11DeviceContext> m_outputContext;

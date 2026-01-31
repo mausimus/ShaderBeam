@@ -10,165 +10,127 @@ MIT License
 
 #include "ShaderBeam.h"
 
-ShaderBeam::ShaderBeam s_shaderBeam;
+#include <GLFW/glfw3.h>
 
-#define MAX_LOADSTRING 100
+#define GLFW_EXPOSE_NATIVE_WIN32
+#include <GLFW/glfw3native.h>
 
-// Global Variables:
-HINSTANCE hInst; // current instance
-WCHAR     szTitle[MAX_LOADSTRING]; // The title bar text
-WCHAR     szWindowClass[MAX_LOADSTRING]; // the main window class name
-
-// Forward declarations of functions included in this code module:
-ATOM             MyRegisterClass(HINSTANCE hInstance);
-BOOL             InitInstance(HINSTANCE, int);
-LRESULT CALLBACK WndProc(HWND, UINT, WPARAM, LPARAM);
-
-int APIENTRY wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _In_ LPWSTR lpCmdLine, _In_ int nCmdShow)
+namespace ShaderBeam
 {
-    UNREFERENCED_PARAMETER(hPrevInstance);
-    UNREFERENCED_PARAMETER(lpCmdLine);
 
-    SetProcessDPIAware();
+ShaderBeam  s_shaderBeam;
+GLFWwindow* s_window;
+HWND        s_hwnd;
+std::mutex  s_mutex;
 
-    // Initialize global strings
-    LoadStringW(hInstance, IDS_APP_TITLE, szTitle, MAX_LOADSTRING);
-    LoadStringW(hInstance, IDC_SHADERBEAM, szWindowClass, MAX_LOADSTRING);
-    MyRegisterClass(hInstance);
-
-    // Perform application initialization:
-    if(!InitInstance(hInstance, nCmdShow))
-    {
-        return FALSE;
-    }
-
-    HACCEL hAccelTable = LoadAccelerators(hInstance, MAKEINTRESOURCE(IDC_SHADERBEAM));
-
-    MSG msg;
-
-    // Main message loop:
-    while(GetMessage(&msg, nullptr, 0, 0))
-    {
-        if(!TranslateAccelerator(msg.hwnd, hAccelTable, &msg))
-        {
-            TranslateMessage(&msg);
-            DispatchMessage(&msg);
-        }
-    }
-
-    return (int)msg.wParam;
+void error_callback(int error, const char* description)
+{
+    fprintf(stderr, "Error: %s\n", description);
 }
 
-//
-//  FUNCTION: MyRegisterClass()
-//
-//  PURPOSE: Registers the window class.
-//
-ATOM MyRegisterClass(HINSTANCE hInstance)
+struct GLFWMessage
 {
-    WNDCLASSEXW wcex;
+    UINT   message;
+    WPARAM wParam;
+    LPARAM lParam;
+};
 
-    wcex.cbSize = sizeof(WNDCLASSEX);
+std::deque<GLFWMessage> _messages;
 
-    wcex.style         = CS_HREDRAW | CS_VREDRAW;
-    wcex.lpfnWndProc   = WndProc;
-    wcex.cbClsExtra    = 0;
-    wcex.cbWndExtra    = 0;
-    wcex.hInstance     = hInstance;
-    wcex.hIcon         = LoadIcon(hInstance, MAKEINTRESOURCE(IDI_SHADERBEAM));
-    wcex.hCursor       = LoadCursor(nullptr, IDC_ARROW);
-    wcex.hbrBackground = CreateSolidBrush(0x00000000);
-    wcex.lpszMenuName  = 0;
-    wcex.lpszClassName = szWindowClass;
-    wcex.hIconSm       = LoadIcon(wcex.hInstance, MAKEINTRESOURCE(IDI_SMALL));
-
-    return RegisterClassExW(&wcex);
+void AppMessage(UINT message, WPARAM wParam, LPARAM lParam)
+{
+    {
+        std::unique_lock lock(s_mutex);
+        _messages.emplace_back(message, wParam, lParam);
+    }
+    glfwPostEmptyEvent();
 }
 
-static void BringToFront(HWND hWnd, bool activate)
+void ErrorMessage(const char* msg)
 {
-    UINT flags = SWP_NOMOVE | SWP_NOSIZE;
-    if(!activate)
-    {
-        flags |= SWP_NOACTIVATE;
-    }
-    SetWindowPos(hWnd, HWND_TOPMOST, 0, 0, 0, 0, flags);
+    MessageBoxA(s_hwnd, msg, SHADERBEAM_TITLE, MB_ICONERROR | MB_OK);
 }
 
-static void MoveToDisplay(HWND hWnd, HMONITOR monitor)
+static void BringToFront(bool activate)
 {
-    RECT        clientRect;
-    MONITORINFO info;
-    info.cbSize = sizeof(info);
-    GetMonitorInfo(monitor, &info);
-    clientRect.top    = info.rcMonitor.top;
-    clientRect.left   = info.rcMonitor.left;
-    clientRect.right  = info.rcMonitor.right;
-    clientRect.bottom = info.rcMonitor.bottom;
-    AdjustWindowRect(&clientRect, GetWindowLong(hWnd, GWL_STYLE), GetMenu(hWnd) != 0);
-    SetWindowPos(hWnd, HWND_TOPMOST, info.rcMonitor.left, info.rcMonitor.top, clientRect.right - clientRect.left, clientRect.bottom - clientRect.top, SWP_FRAMECHANGED);
+    int flags = GLFW_FLOATING;
+    if(activate)
+    {
+        flags |= GLFW_FOCUSED;
+    }
+    glfwSetWindowAttrib(s_window, flags, GLFW_TRUE);
 }
 
-//
-//   FUNCTION: InitInstance(HINSTANCE, int)
-//
-//   PURPOSE: Saves instance handle and creates main window
-//
-//   COMMENTS:
-//
-//        In this function, we save the instance handle in a global variable and
-//        create and display the main program window.
-//
-BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
+void ToggleUI()
 {
-    hInst = hInstance; // Store instance handle in our global variable
-
-    HWND hWnd = CreateWindowW(szWindowClass, szTitle, WS_POPUP | WS_OVERLAPPEDWINDOW | WS_EX_WINDOWEDGE, CW_USEDEFAULT, 0, CW_USEDEFAULT, 0, nullptr, nullptr, hInstance, nullptr);
-
-    if(!hWnd)
+    if(s_shaderBeam.m_ui.Toggle())
     {
-        return FALSE;
+        // UI visible
+        glfwSetWindowAttrib(s_window, GLFW_MOUSE_PASSTHROUGH, GLFW_FALSE);
+        BringToFront(true);
     }
-
-    LONG cur_style = GetWindowLong(hWnd, GWL_STYLE);
-    cur_style &= ~WS_OVERLAPPEDWINDOW;
-    SetWindowLong(hWnd, GWL_STYLE, cur_style);
-    SetWindowDisplayAffinity(hWnd, WDA_EXCLUDEFROMCAPTURE);
-
-    s_shaderBeam.Create(hWnd);
-    MoveToDisplay(hWnd, s_shaderBeam.m_ui.m_displays[s_shaderBeam.m_options.shaderDisplayNo].monitor);
-
-    ShowWindow(hWnd, nCmdShow);
-    UpdateWindow(hWnd);
-
-    s_shaderBeam.Start();
-    SetTimer(hWnd, 1, 1000, NULL);
-    return TRUE;
+    else
+    {
+        // UI hidden
+        glfwSetWindowAttrib(s_window, GLFW_MOUSE_PASSTHROUGH, GLFW_TRUE);
+    }
 }
 
-//
-//  FUNCTION: WndProc(HWND, UINT, WPARAM, LPARAM)
-//
-//  PURPOSE: Processes messages for the main window.
-//
-//  WM_COMMAND  - process the application menu
-//  WM_PAINT    - Paint the main window
-//  WM_DESTROY  - post a quit message and return
-//
-//
-LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
+void Start()
 {
-    if(message == WM_LBUTTONDOWN && !s_shaderBeam.m_ui.MouseRequired())
-    {
-        // clicking away of ImGui - hide UI
-        PostMessage(hWnd, WM_HOTKEY, HOTKEY_TOGGLEUI, 1);
-        return true;
-    }
-    if(s_shaderBeam.m_ui.Input(hWnd, message, wParam, lParam))
-    {
-        return true;
-    }
+    RegisterHotKey(s_hwnd, HOTKEY_TOGGLEUI, MOD_CONTROL | MOD_SHIFT, HOTKEY_TOGGLEUI_KEY);
+    RegisterHotKey(s_hwnd, HOTKEY_BRINGTOFRONT, MOD_CONTROL | MOD_SHIFT, HOTKEY_BRINGTOFRONT_KEY);
+    //RegisterHotKey(m_options.outputWindow, HOTKEY_STOPSTART, MOD_CONTROL | MOD_SHIFT, HOTKEY_STOPSTART_KEY);
+    RegisterHotKey(s_hwnd, HOTKEY_RESTART, MOD_CONTROL | MOD_SHIFT, HOTKEY_RESTART_KEY);
+    RegisterHotKey(s_hwnd, HOTKEY_QUIT, MOD_CONTROL | MOD_SHIFT, HOTKEY_QUIT_KEY);
 
+    SetTimer(s_hwnd, 1, 1000, NULL);
+}
+
+void Stop()
+{
+    UnregisterHotKey(s_hwnd, HOTKEY_TOGGLEUI);
+    UnregisterHotKey(s_hwnd, HOTKEY_BRINGTOFRONT);
+    //UnregisterHotKey(m_options.outputWindow, HOTKEY_STOPSTART);
+    UnregisterHotKey(s_hwnd, HOTKEY_RESTART);
+    UnregisterHotKey(s_hwnd, HOTKEY_QUIT);
+
+    timeEndPeriod(1);
+
+    KillTimer(s_hwnd, 1);
+}
+
+void MoveToDisplay(int no)
+{
+    int  count;
+    auto monitors = glfwGetMonitors(&count);
+
+    if(count <= no)
+        return;
+
+    // assuming order is the same as in Win32....
+    const GLFWvidmode* mode = glfwGetVideoMode(monitors[no]);
+
+    int xpos, ypos;
+    glfwGetMonitorPos(monitors[no], &xpos, &ypos);
+    glfwSetWindowPos(s_window, xpos, ypos);
+    glfwSetWindowSize(s_window, mode->width, mode->height);
+
+    float xscale, yscale;
+    glfwGetWindowContentScale(s_window, &xscale, &yscale);
+    s_shaderBeam.m_options.scale = xscale;
+}
+
+void mouse_button_callback(GLFWwindow* window, int button, int action, int mods)
+{
+    if(button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS && !s_shaderBeam.m_ui.MouseRequired())
+    {
+        ToggleUI();
+    }
+}
+
+bool ProcessMessage(UINT message, WPARAM wParam, LPARAM lParam)
+{
     switch(message)
     {
     case WM_TIMER: {
@@ -178,7 +140,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
     }
     case WM_USER_RESTART: {
         s_shaderBeam.Stop();
-        MoveToDisplay(hWnd, s_shaderBeam.m_ui.m_displays[s_shaderBeam.m_options.shaderDisplayNo].monitor);
+        MoveToDisplay(s_shaderBeam.m_ui.m_displays[s_shaderBeam.m_options.shaderDisplayNo].no);
         s_shaderBeam.Start();
         break;
     }
@@ -189,20 +151,24 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
     }
     case WM_USER_NOWINDOW: {
         s_shaderBeam.m_options.captureWindow = NULL;
-        PostMessage(hWnd, WM_USER_RESTART, 0, 0);
+        AppMessage(WM_USER_RESTART, 0, 0);
+        break;
+    }
+    case WM_USER_QUIT: {
+        glfwSetWindowShouldClose(s_window, 1);
         break;
     }
     case WM_HOTKEY: {
         switch(wParam)
         {
         case HOTKEY_QUIT:
-            PostMessage(hWnd, WM_DESTROY, 0, 0);
+            AppMessage(WM_USER_QUIT, 0, 0);
             break;
         case HOTKEY_BRINGTOFRONT:
-            BringToFront(hWnd, false);
+            BringToFront(false);
             break;
         case HOTKEY_RESTART:
-            PostMessage(hWnd, WM_USER_RESTART, 0, 0);
+            AppMessage(WM_USER_RESTART, 0, 0);
             break;
         case HOTKEY_STOPSTART:
             if(s_shaderBeam.m_active)
@@ -215,39 +181,99 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
             }
             break;
         case HOTKEY_TOGGLEUI:
-            if(s_shaderBeam.m_ui.Toggle())
-            {
-                // UI visible
-                LONG ex_style = GetWindowLong(hWnd, GWL_EXSTYLE);
-                ex_style &= ~(WS_EX_LAYERED | WS_EX_TRANSPARENT);
-                SetWindowLong(hWnd, GWL_EXSTYLE, ex_style);
-                BringToFront(hWnd, true);
-                SetForegroundWindow(hWnd);
-            }
-            else
-            {
-                // UI hidden
-                LONG ex_style = GetWindowLong(hWnd, GWL_EXSTYLE);
-                SetWindowLong(hWnd, GWL_EXSTYLE, ex_style | WS_EX_LAYERED | WS_EX_TRANSPARENT);
-            }
+            ToggleUI();
             break;
         }
     }
     break;
-    case WM_ERASEBKGND:
-    case WM_SIZING:
-        return 0;
-    case WM_PAINT:
-        ValidateRect(hWnd, NULL);
-        return 0;
-    case WM_DESTROY:
-        s_shaderBeam.Stop();
-        s_shaderBeam.Destroy();
-        KillTimer(hWnd, 1);
-        PostQuitMessage(0);
-        break;
     default:
-        return DefWindowProc(hWnd, message, wParam, lParam);
+        return false;
     }
+    return true;
+}
+
+WNDPROC OriginalWndProc = NULL;
+
+LRESULT CALLBACK CustomWndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
+{
+    if(ProcessMessage(message, wParam, lParam))
+    {
+        return 0;
+    }
+    return CallWindowProc(OriginalWndProc, hWnd, message, wParam, lParam);
+}
+
+void Run()
+{
+    SetProcessDPIAware();
+
+    if(!glfwInit())
+    {
+        // Initialization failed
+        abort();
+    }
+    glfwSetErrorCallback(error_callback);
+
+    glfwWindowHint(GLFW_FLOATING, GLFW_TRUE);
+    glfwWindowHint(GLFW_DECORATED, GLFW_FALSE);
+    glfwWindowHint(GLFW_MOUSE_PASSTHROUGH, GLFW_FALSE);
+
+    s_window = glfwCreateWindow(640, 480, "ShaderBeam", NULL, NULL);
+    if(!s_window)
+    {
+        // Window or OpenGL context creation failed
+        abort();
+    }
+
+    glfwSetMouseButtonCallback(s_window, mouse_button_callback);
+
+    s_hwnd          = glfwGetWin32Window(s_window);
+    OriginalWndProc = (WNDPROC)GetWindowLongPtr(s_hwnd, GWLP_WNDPROC);
+    if(OriginalWndProc == NULL)
+    {
+        abort();
+    }
+    SetWindowLongPtr(s_hwnd, GWLP_WNDPROC, (LONG_PTR)CustomWndProc);
+
+    s_shaderBeam.Create(s_hwnd, s_window);
+
+    MoveToDisplay(s_shaderBeam.m_ui.m_displays[s_shaderBeam.m_options.shaderDisplayNo].no);
+
+    SetWindowDisplayAffinity(s_hwnd, WDA_EXCLUDEFROMCAPTURE);
+
+    BringToFront(true);
+
+    s_shaderBeam.Start();
+    Start();
+
+    while(!glfwWindowShouldClose(s_window))
+    {
+        std::vector<GLFWMessage> msgs;
+        {
+            std::unique_lock lock(s_mutex);
+            msgs.insert(msgs.begin(), _messages.begin(), _messages.end());
+            _messages.clear();
+        }
+        for(const auto& msg : msgs)
+        {
+            ProcessMessage(msg.message, msg.lParam, msg.wParam);
+        }
+
+        glfwWaitEvents();
+    }
+
+    s_shaderBeam.Stop();
+    s_shaderBeam.Destroy();
+    Stop();
+
+    glfwDestroyWindow(s_window);
+    glfwTerminate();
+}
+
+} // namespace ShaderBeam
+
+int APIENTRY wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _In_ LPWSTR lpCmdLine, _In_ int nCmdShow)
+{
+    ShaderBeam::Run();
     return 0;
 }

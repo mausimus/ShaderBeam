@@ -10,15 +10,13 @@ MIT License
 #include "CaptureBase.h"
 #include "Watcher.h"
 
-#ifdef _WIN32
-
 namespace ShaderBeam
 {
 
-class CaptureDD : public CaptureBase
+class CaptureFile : public CaptureBase
 {
 public:
-    CaptureDD(Watcher& watcher, const Options& options);
+    CaptureFile(Watcher& watcher, const Options& options);
 
     bool IsSupported();
     bool SupportsWindowCapture();
@@ -29,13 +27,7 @@ protected:
     void InternalStop();
 
 private:
-    Watcher& m_watcher;
-
-    winrt::com_ptr<IDXGIOutput1>           m_capturedOutput;
-    winrt::com_ptr<IDXGIOutputDuplication> m_desktopDuplication;
-    unsigned                               m_width { 0 };
-    unsigned                               m_height { 0 };
+    int                   m_frameNo { 0 };
+    std::vector<uint32_t> m_data;
 };
 } // namespace ShaderBeam
-
-#endif

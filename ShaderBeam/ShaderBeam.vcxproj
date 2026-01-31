@@ -106,13 +106,13 @@
       <PrecompiledHeader>Use</PrecompiledHeader>
       <LanguageStandard>stdcpp20</LanguageStandard>
       <LanguageStandard_C>stdc17</LanguageStandard_C>
-      <AdditionalIncludeDirectories>$(SolutionDir)\ImGui;$(ProjectDir)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)\ImGui;$(SolutionDir);$(ProjectDir)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>d3d11.lib;imgui.lib;winmm.lib;windowsapp.lib;$(CoreLibraryDependencies);%(AdditionalDependencies)</AdditionalDependencies>
-      <AdditionalLibraryDirectories>$(OutDir)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>glfw3.lib;dwmapi.lib;d3d11.lib;imgui.lib;winmm.lib;windowsapp.lib;$(CoreLibraryDependencies);%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>$(OutDir);$(SolutionDir)\GLFW</AdditionalLibraryDirectories>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -139,6 +139,7 @@
   <ItemGroup>
     <ClInclude Include="CaptureBase.h" />
     <ClInclude Include="CaptureDD.h" />
+    <ClInclude Include="CaptureFile.h" />
     <ClInclude Include="CaptureWGC.h" />
     <ClInclude Include="Charts.h" />
     <ClInclude Include="framework.h" />
@@ -166,6 +167,7 @@
   <ItemGroup>
     <ClCompile Include="CaptureBase.cpp" />
     <ClCompile Include="CaptureDD.cpp" />
+    <ClCompile Include="CaptureFile.cpp" />
     <ClCompile Include="CaptureWGC.cpp" />
     <ClCompile Include="Charts.cpp" />
     <ClCompile Include="Common.cpp" />
@@ -178,11 +180,11 @@
     <ClCompile Include="RenderThread.cpp" />
     <ClCompile Include="ShaderBeam.cpp" />
     <ClCompile Include="UI.cpp" />
-    <ClCompile Include="Window.cpp" />
     <ClCompile Include="stdafx.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Create</PrecompiledHeader>
     </ClCompile>
+    <ClCompile Include="Window.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="ShaderBeam.rc" />
