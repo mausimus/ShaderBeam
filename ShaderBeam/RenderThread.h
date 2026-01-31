@@ -30,6 +30,7 @@ public:
 
 private:
     HANDLE                       m_handle;
+    std::thread                  m_thread;
     const Options&               m_options;
     const UI&                    m_ui;
     Renderer&                    m_renderer;

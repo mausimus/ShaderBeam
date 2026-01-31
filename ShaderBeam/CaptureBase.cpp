@@ -26,6 +26,7 @@ void CaptureBase::Start(winrt::com_ptr<IDXGIDevice> captureDevice, winrt::com_pt
 
     if(m_options.captureWindow)
     {
+        #ifdef _WIN32
         RECT captureRect;
         if(DwmGetWindowAttribute(m_options.captureWindow, DWMWA_EXTENDED_FRAME_BOUNDS, &captureRect, sizeof(RECT)) == S_OK)
         {
@@ -38,6 +39,7 @@ void CaptureBase::Start(winrt::com_ptr<IDXGIDevice> captureDevice, winrt::com_pt
                 m_windowY = captureRect.top - monitorInfo.rcMonitor.top;
             }
         }
+        #endif
     }
 
     InternalStart();
@@ -172,8 +174,8 @@ void CaptureBase::CopyTrimToOutputSize(ID3D11DeviceContext* context, ID3D11Textu
         D3D11_BOX box;
         box.left   = 0;
         box.top    = 0;
-        box.right  = min(m_options.outputWidth - m_windowX, (unsigned)width);
-        box.bottom = min(m_options.outputHeight - m_windowY, (unsigned)height);
+        box.right  = std::min(m_options.outputWidth - m_windowX, (unsigned)width);
+        box.bottom = std::min(m_options.outputHeight - m_windowY, (unsigned)height);
         box.front  = 0;
         box.back   = 1;
         context->CopySubresourceRegion(output, 0, m_windowX, m_windowY, 0, source, 0, &box);

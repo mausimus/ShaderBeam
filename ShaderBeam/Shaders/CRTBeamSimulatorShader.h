@@ -102,7 +102,13 @@ public:
             { NULL, NULL },
         };
 
+        #ifdef _WIN32
         SetShader(L"Shaders\\CRTBeamSimulator.hlsl", macros, renderContext);
+        #else
+        #include "CRTBeamSimulator.vert.h"
+        #include "CRTBeamSimulator.frag.h"
+        SetShader(g_VSmain, sizeof(g_VSmain), g_PSmain, sizeof(g_PSmain), renderContext);
+        #endif
         SetParameterBuffer(&m_params, sizeof(m_params), renderContext);
         CreatePipeline(renderContext);
     }

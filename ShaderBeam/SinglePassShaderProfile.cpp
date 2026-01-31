@@ -15,6 +15,7 @@ namespace ShaderBeam
 
 void SinglePassShaderProfile::SetShader(const wchar_t* filename, D3D10_SHADER_MACRO* macros, const RenderContext& renderContext)
 {
+    #ifdef _WIN32
     ID3DBlob* vertexBlob = nullptr;
     ID3DBlob* pixelBlob  = nullptr;
     ID3DBlob* errorBlob  = nullptr;
@@ -50,6 +51,15 @@ void SinglePassShaderProfile::SetShader(const wchar_t* filename, D3D10_SHADER_MA
 
     vertexBlob->Release();
     pixelBlob->Release();
+    #else
+    abort();
+    #endif
+}
+
+void SinglePassShaderProfile::SetShader(const BYTE* vertexData, int vertexLen, const BYTE* pixelData, int pixelLen, const RenderContext& renderContext)
+{
+    THROW(renderContext.device->CreateVertexShader(vertexData, vertexLen, NULL, m_vertexShader.put()), "Unable to create vertex shader");
+    THROW(renderContext.device->CreatePixelShader(pixelData, pixelLen, NULL, m_pixelShader.put()), "Unable to create pixel shader");
 }
 
 void SinglePassShaderProfile::SetParameterBuffer(void* data, int size, const RenderContext& renderContext)

@@ -19,6 +19,12 @@ namespace ShaderBeam
 #define MAX_INPUTS 5
 #define AUTOSYNC_INTERVAL 2
 
+#ifndef _WIN32
+#define WM_TIMER 0
+#define WM_HOTKEY 1
+#define WM_USER 2
+#endif
+
 #define WM_USER_RESTART (WM_USER)
 #define WM_USER_BENCHMARK (WM_USER + 1)
 #define WM_USER_NOWINDOW (WM_USER + 2)

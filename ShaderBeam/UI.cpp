@@ -12,12 +12,14 @@ MIT License
 #include "CaptureBase.h"
 
 #include "imgui.h"
-#include "backends\imgui_impl_glfw.h"
-#include "backends\imgui_impl_dx11.h"
+#include "backends/imgui_impl_glfw.h"
+#include "backends/imgui_impl_dx11.h"
 
 #include "ProggyVectorRegular.h"
 
+#ifdef _WIN32
 extern IMGUI_IMPL_API LRESULT ImGui_ImplWin32_WndProcHandler(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
+#endif
 
 const char* SHADERBEAM_ABOUT = "               " SHADERBEAM_TITLE "\n"
                                "            (c) 2025-2026 mausimus\n"
@@ -165,7 +167,7 @@ void UI::Render()
             }
             if(ImGui::BeginPopup("About"))
             {
-                ImGui::Text(SHADERBEAM_ABOUT);
+                ImGui::TextUnformatted(SHADERBEAM_ABOUT);
                 if(ImGui::Button("Close"))
                 {
                     ImGui::CloseCurrentPopup();
@@ -183,7 +185,7 @@ void UI::Render()
             }
             if(ImGui::BeginPopup("hotkeys"))
             {
-                ImGui::Text(SHADERBEAM_HOTKEYS);
+                ImGui::TextUnformatted(SHADERBEAM_HOTKEYS);
                 if(ImGui::Button("Close"))
                 {
                     ImGui::CloseCurrentPopup();
@@ -533,8 +535,8 @@ void UI::Render()
             }
             if(ImGui::BeginPopupModal("Error"))
             {
-                ImGui::Text("FATAL ERROR");
-                ImGui::Text(m_errorMessage.c_str());
+                ImGui::TextUnformatted("FATAL ERROR");
+                ImGui::TextUnformatted(m_errorMessage.c_str());
                 if(ImGui::Button("Close"))
                 {
                     ImGui::CloseCurrentPopup();
@@ -687,6 +689,8 @@ void UI::SetError(const char* message)
     m_errorMessage = message;
 }
 
+#ifdef _WIN32
+
 // See http://blogs.msdn.com/b/oldnewthing/archive/2007/10/08/5351207.aspx
 BOOL IsAltTabWindow(HWND hwnd)
 {
@@ -703,9 +707,11 @@ BOOL IsAltTabWindow(HWND hwnd)
     }
     return hwndWalk == hwnd;
 }
+#endif
 
 void UI::AddWindow(HWND hWnd)
 {
+    #ifdef _WIN32
     wchar_t name[128];
     wchar_t wclass[128];
     if(hWnd != m_options.hwnd && IsWindowVisible(hWnd) && IsAltTabWindow(hWnd) && !IsIconic(hWnd) && GetWindowText(hWnd, name, 127))
@@ -733,23 +739,28 @@ void UI::AddWindow(HWND hWnd)
         std::string displayName = "Window: " + Helpers::WCharToString(name) + " (" + std::to_string((uint64_t)hWnd) + ")";
         m_inputs.emplace_back(hWnd, displayName, fullscreen, 0, 0);
     }
+    #endif
 }
 
+#ifdef _WIN32
 static BOOL CALLBACK EnumWindowsProc(_In_ HWND hWnd, _In_ LPARAM lParam)
 {
     ((UI*)lParam)->AddWindow(hWnd);
     return true;
 }
+#endif
 
 void UI::ScanWindows()
 {
     m_inputs.clear();
 
+    #ifdef _WIN32
     if(m_captures[0].api->SupportsWindowCapture())
     {
         EnumWindows(EnumWindowsProc, (LPARAM)this);
         std::sort(m_inputs.begin(), m_inputs.end(), [](const InputInfo& a, const InputInfo& b) { return _stricmp(a.name.c_str(), b.name.c_str()) < 0; });
     }
+    #endif
 
     std::vector<InputInfo> desktops;
     for(const auto& capture : m_captures)

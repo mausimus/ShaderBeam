@@ -6,7 +6,6 @@ MIT License
 */
 
 #include "stdafx.h"
-#include "resource.h"
 
 #include "ShaderBeam.h"
 
@@ -48,7 +47,11 @@ void AppMessage(UINT message, WPARAM wParam, LPARAM lParam)
 
 void ErrorMessage(const char* msg)
 {
+    #ifdef _WIN32
     MessageBoxA(s_hwnd, msg, SHADERBEAM_TITLE, MB_ICONERROR | MB_OK);
+    #else
+    error_callback(1, msg);
+    #endif
 }
 
 static void BringToFront(bool activate)
@@ -78,6 +81,10 @@ void ToggleUI()
 
 void Start()
 {
+    #ifdef _WIN32
+    timeBeginPeriod(1);
+    Helpers::InitQPC();
+
     RegisterHotKey(s_hwnd, HOTKEY_TOGGLEUI, MOD_CONTROL | MOD_SHIFT, HOTKEY_TOGGLEUI_KEY);
     RegisterHotKey(s_hwnd, HOTKEY_BRINGTOFRONT, MOD_CONTROL | MOD_SHIFT, HOTKEY_BRINGTOFRONT_KEY);
     //RegisterHotKey(m_options.outputWindow, HOTKEY_STOPSTART, MOD_CONTROL | MOD_SHIFT, HOTKEY_STOPSTART_KEY);
@@ -85,10 +92,12 @@ void Start()
     RegisterHotKey(s_hwnd, HOTKEY_QUIT, MOD_CONTROL | MOD_SHIFT, HOTKEY_QUIT_KEY);
 
     SetTimer(s_hwnd, 1, 1000, NULL);
+    #endif
 }
 
 void Stop()
 {
+    #ifdef _WIN32
     UnregisterHotKey(s_hwnd, HOTKEY_TOGGLEUI);
     UnregisterHotKey(s_hwnd, HOTKEY_BRINGTOFRONT);
     //UnregisterHotKey(m_options.outputWindow, HOTKEY_STOPSTART);
@@ -98,6 +107,7 @@ void Stop()
     timeEndPeriod(1);
 
     KillTimer(s_hwnd, 1);
+    #endif
 }
 
 void MoveToDisplay(int no)
@@ -192,6 +202,7 @@ bool ProcessMessage(UINT message, WPARAM wParam, LPARAM lParam)
     return true;
 }
 
+#ifdef _WIN32
 WNDPROC OriginalWndProc = NULL;
 
 LRESULT CALLBACK CustomWndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
@@ -202,10 +213,13 @@ LRESULT CALLBACK CustomWndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lP
     }
     return CallWindowProc(OriginalWndProc, hWnd, message, wParam, lParam);
 }
+#endif
 
 void Run()
 {
+    #ifdef _WIN32
     SetProcessDPIAware();
+    #endif
 
     if(!glfwInit())
     {
@@ -227,6 +241,7 @@ void Run()
 
     glfwSetMouseButtonCallback(s_window, mouse_button_callback);
 
+    #ifdef _WIN32
     s_hwnd          = glfwGetWin32Window(s_window);
     OriginalWndProc = (WNDPROC)GetWindowLongPtr(s_hwnd, GWLP_WNDPROC);
     if(OriginalWndProc == NULL)
@@ -234,12 +249,17 @@ void Run()
         abort();
     }
     SetWindowLongPtr(s_hwnd, GWLP_WNDPROC, (LONG_PTR)CustomWndProc);
+    #else
+    s_hwnd = (HWND)s_window;
+    #endif
 
     s_shaderBeam.Create(s_hwnd, s_window);
 
     MoveToDisplay(s_shaderBeam.m_ui.m_displays[s_shaderBeam.m_options.shaderDisplayNo].no);
 
+    #ifdef _WIN32
     SetWindowDisplayAffinity(s_hwnd, WDA_EXCLUDEFROMCAPTURE);
+#endif
 
     BringToFront(true);
 
@@ -272,8 +292,16 @@ void Run()
 
 } // namespace ShaderBeam
 
+#ifdef _WIN32
 int APIENTRY wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _In_ LPWSTR lpCmdLine, _In_ int nCmdShow)
 {
     ShaderBeam::Run();
     return 0;
 }
+#else
+int main()
+{
+    ShaderBeam::Run();
+    return 0;
+}
+#endif

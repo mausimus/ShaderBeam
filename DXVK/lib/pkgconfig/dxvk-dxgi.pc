@@ -1,0 +1,9 @@
+prefix=/home/user/Projects/dxvk/build/dxvk-native-6/usr
+includedir=${prefix}/include
+libdir=${prefix}/lib
+
+Name: dxvk_dxgi
+Description: dxvk: dxvk_dxgi
+Version: 2.7.1
+Libs: -L${libdir} -ldxvk_dxgi
+Cflags: -I${includedir}/dxvk

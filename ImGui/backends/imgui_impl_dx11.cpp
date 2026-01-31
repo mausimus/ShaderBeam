@@ -433,7 +433,8 @@ bool    ImGui_ImplDX11_CreateDeviceObjects()
 
     // Create the vertex shader
     {
-        static const char* vertexShader =
+        #include "imgui_vert.h"
+/*        static const char* vertexShader =
             "cbuffer vertexBuffer : register(b0) \
             {\
               float4x4 ProjectionMatrix; \
@@ -459,14 +460,14 @@ bool    ImGui_ImplDX11_CreateDeviceObjects()
               output.col = input.col;\
               output.uv  = input.uv;\
               return output;\
-            }";
+            }";*/
 
-        ID3DBlob* vertexShaderBlob;
-        if (FAILED(D3DCompile(vertexShader, strlen(vertexShader), nullptr, nullptr, nullptr, "main", "vs_4_0", 0, 0, &vertexShaderBlob, nullptr)))
-            return false; // NB: Pass ID3DBlob* pErrorBlob to D3DCompile() to get error showing in (const char*)pErrorBlob->GetBufferPointer(). Make sure to Release() the blob!
-        if (bd->pd3dDevice->CreateVertexShader(vertexShaderBlob->GetBufferPointer(), vertexShaderBlob->GetBufferSize(), nullptr, &bd->pVertexShader) != S_OK)
+//        ID3DBlob* vertexShaderBlob;
+//        if (FAILED(D3DCompile(vertexShader, strlen(vertexShader), nullptr, nullptr, nullptr, "main", "vs_4_0", 0, 0, &vertexShaderBlob, nullptr)))
+  //          return false; // NB: Pass ID3DBlob* pErrorBlob to D3DCompile() to get error showing in (const char*)pErrorBlob->GetBufferPointer(). Make sure to Release() the blob!
+        if (bd->pd3dDevice->CreateVertexShader(g_main, sizeof(g_main), nullptr, &bd->pVertexShader) != S_OK)
         {
-            vertexShaderBlob->Release();
+//            vertexShaderBlob->Release();
             return false;
         }
 
@@ -477,12 +478,12 @@ bool    ImGui_ImplDX11_CreateDeviceObjects()
             { "TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT,   0, (UINT)offsetof(ImDrawVert, uv),  D3D11_INPUT_PER_VERTEX_DATA, 0 },
             { "COLOR",    0, DXGI_FORMAT_R8G8B8A8_UNORM, 0, (UINT)offsetof(ImDrawVert, col), D3D11_INPUT_PER_VERTEX_DATA, 0 },
         };
-        if (bd->pd3dDevice->CreateInputLayout(local_layout, 3, vertexShaderBlob->GetBufferPointer(), vertexShaderBlob->GetBufferSize(), &bd->pInputLayout) != S_OK)
+        if (bd->pd3dDevice->CreateInputLayout(local_layout, 3, g_main, sizeof(g_main), &bd->pInputLayout) != S_OK)
         {
-            vertexShaderBlob->Release();
+//            vertexShaderBlob->Release();
             return false;
         }
-        vertexShaderBlob->Release();
+  //      vertexShaderBlob->Release();
 
         // Create the constant buffer
         {
@@ -498,7 +499,8 @@ bool    ImGui_ImplDX11_CreateDeviceObjects()
 
     // Create the pixel shader
     {
-        static const char* pixelShader =
+        #include "imgui_frag.h"
+/*        static const char* pixelShader =
             "struct PS_INPUT\
             {\
             float4 pos : SV_POSITION;\
@@ -512,17 +514,17 @@ bool    ImGui_ImplDX11_CreateDeviceObjects()
             {\
             float4 out_col = input.col * texture0.Sample(sampler0, input.uv); \
             return out_col; \
-            }";
+            }";*/
 
-        ID3DBlob* pixelShaderBlob;
-        if (FAILED(D3DCompile(pixelShader, strlen(pixelShader), nullptr, nullptr, nullptr, "main", "ps_4_0", 0, 0, &pixelShaderBlob, nullptr)))
-            return false; // NB: Pass ID3DBlob* pErrorBlob to D3DCompile() to get error showing in (const char*)pErrorBlob->GetBufferPointer(). Make sure to Release() the blob!
-        if (bd->pd3dDevice->CreatePixelShader(pixelShaderBlob->GetBufferPointer(), pixelShaderBlob->GetBufferSize(), nullptr, &bd->pPixelShader) != S_OK)
+    //    ID3DBlob* pixelShaderBlob;
+//        if (FAILED(D3DCompile(pixelShader, strlen(pixelShader), nullptr, nullptr, nullptr, "main", "ps_4_0", 0, 0, &pixelShaderBlob, nullptr)))
+  //          return false; // NB: Pass ID3DBlob* pErrorBlob to D3DCompile() to get error showing in (const char*)pErrorBlob->GetBufferPointer(). Make sure to Release() the blob!
+        if (bd->pd3dDevice->CreatePixelShader(g_main, sizeof(g_main), nullptr, &bd->pPixelShader) != S_OK)
         {
-            pixelShaderBlob->Release();
+//            pixelShaderBlob->Release();
             return false;
         }
-        pixelShaderBlob->Release();
+  //      pixelShaderBlob->Release();
     }
 
     // Create the blending setup

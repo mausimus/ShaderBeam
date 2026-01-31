@@ -1,0 +1,9 @@
+prefix=/home/user/Projects/dxvk/build/dxvk-native-6/usr
+includedir=${prefix}/include
+libdir=${prefix}/lib
+
+Name: dxvk_d3d11
+Description: dxvk: dxvk_d3d11
+Version: 2.7.1
+Libs: -L${libdir} -ldxvk_d3d11
+Cflags: -I${includedir}/dxvk

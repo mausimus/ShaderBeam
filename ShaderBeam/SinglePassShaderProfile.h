@@ -18,6 +18,7 @@ public:
     virtual void Destroy();
 
 protected:
+    void SetShader(const BYTE* vertexData, int vertexLen, const BYTE* pixelData, int pixelLen, const RenderContext& renderContext);
     void SetShader(const wchar_t* filename, D3D10_SHADER_MACRO* macros, const RenderContext& renderContext);
     void SetParameterBuffer(void* data, int size, const RenderContext& renderContext);
     void CreatePipeline(const RenderContext& renderContext);

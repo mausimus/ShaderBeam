@@ -52,9 +52,6 @@ void ShaderBeam::Create(HWND hwnd, GLFWwindow* window)
     m_ui.m_splitScreens.push_back("Vertical");
     m_ui.m_splitScreens.push_back("Horizontal");
 
-    timeBeginPeriod(1);
-    Helpers::InitQPC();
-
     m_options.Load(m_shaderManager);
 
     DefaultOptions();
@@ -70,11 +67,13 @@ void ShaderBeam::RunBenchmark()
 void ShaderBeam::UpdateVsyncRate()
 {
     // get VSync duration from DWM (should match fastest display)
+    #ifdef _WIN32
     DWM_TIMING_INFO dwmInfo {};
     dwmInfo.cbSize = sizeof(dwmInfo);
     DwmGetCompositionTimingInfo(NULL, &dwmInfo);
     m_options.vsyncDuration = Helpers::QPCToDeltaMs(dwmInfo.qpcRefreshPeriod);
     m_options.vsyncRate     = 1000.0f / m_options.vsyncDuration;
+    #endif
 }
 
 void ShaderBeam::DefaultOptions()
@@ -241,6 +240,7 @@ std::vector<AdapterInfo> ShaderBeam::GetAdapters()
     return adapters;
 }
 
+#ifdef _WIN32
 static BOOL CALLBACK EnumDisplayMonitorsProc(_In_ HMONITOR hMonitor, _In_ HDC hDC, _In_ LPRECT lpRect, _In_ LPARAM lParam)
 {
     std::vector<DisplayInfo>* displays = (std::vector<DisplayInfo>*)lParam;
@@ -255,11 +255,16 @@ static BOOL CALLBACK EnumDisplayMonitorsProc(_In_ HMONITOR hMonitor, _In_ HDC hD
     displays->emplace_back(no, w, h, name, hMonitor);
     return true;
 }
+#endif
 
 std::vector<DisplayInfo> ShaderBeam::GetDisplays()
 {
     std::vector<DisplayInfo> displays;
+    #ifdef _WIN32
     EnumDisplayMonitors(NULL, NULL, EnumDisplayMonitorsProc, (LPARAM)&displays);
+    #else
+    displays.emplace_back(0, 1920, 1080, "Dummy Display", nullptr);
+    #endif
     return displays;
 }
 

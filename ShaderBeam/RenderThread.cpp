@@ -27,17 +27,23 @@ void RenderThread::Start(const std::shared_ptr<CaptureBase>& capture)
     m_nextResync = 0;
     m_stop       = false;
     m_stopped    = false;
+
+    #ifdef _WIN32
     m_handle     = CreateThread(NULL, 0, ThreadProc, this, 0, NULL);
     if(m_handle == NULL)
     {
         throw std::runtime_error("Unable to create render thread.");
     }
     SetThreadPriority(m_handle, THREAD_PRIORITY_TIME_CRITICAL);
+    #else
+    m_thread = std::thread(&RenderThread::Run, this);
+    #endif
 }
 
 void RenderThread::Stop()
 {
     m_stop = true;
+    #ifdef _WIN32
     if(m_handle)
     {
         while(!m_stopped)
@@ -45,6 +51,9 @@ void RenderThread::Stop()
             Sleep(5);
         }
     }
+    #else
+    m_thread.join();
+    #endif
 }
 
 void RenderThread::PollCapture()

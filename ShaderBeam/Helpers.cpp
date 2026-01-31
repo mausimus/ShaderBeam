@@ -72,15 +72,18 @@ static LARGE_INTEGER startTicks { .QuadPart = 0 };
 
 void Helpers::InitQPC()
 {
+    #ifdef _WIN32
     QueryPerformanceFrequency(&freq);
     if(!QueryPerformanceCounter(&startTicks))
     {
         throw std::runtime_error("Unable to query performance counter");
     }
+    #endif
 }
 
 float Helpers::GetTicks()
 {
+    #ifdef _WIN32
     LARGE_INTEGER ticks;
     if(!QueryPerformanceCounter(&ticks) || freq.QuadPart == 0)
     {
@@ -88,13 +91,20 @@ float Helpers::GetTicks()
     }
 
     return (float)((ticks.QuadPart - startTicks.QuadPart) / (freq.QuadPart / TICKS_PER_SEC));
+    #else
+    return 0;
+    #endif
 }
 
 ULONGLONG Helpers::GetQPC()
 {
+    #ifdef _WIN32
     LARGE_INTEGER li;
     QueryPerformanceCounter(&li);
     return li.QuadPart;
+    #else
+    return 0;
+    #endif
 }
 
 float Helpers::QPCToTicks(ULONGLONG qpc)
@@ -129,18 +139,26 @@ void Helpers::Throw(HRESULT hr, const char* action)
 {
     if(FAILED(hr))
     {
+        #ifdef _WIN32
         _com_error err(hr);
         auto       error = err.ErrorMessage();        
         throw std::runtime_error(action + std::string("\r\n") + Helpers::WCharToString(error));
+        #else
+        throw std::runtime_error(action);
+        #endif
     }
 }
 
 std::string Helpers::WCharToString(const wchar_t* text)
 {
+    #ifdef _WIN32
     char utfString[256];
     utfString[255] = 0;
     WideCharToMultiByte(CP_UTF8, 0, text, -1, utfString, 255, NULL, NULL);
     return std::string(utfString);
+    #else
+    return std::string("Not supported");
+    #endif
 }
 
 } // namespace ShaderBeam

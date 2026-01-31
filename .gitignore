@@ -363,3 +363,5 @@ FodyWeavers.xsd
 
 imgui.ini
 ShaderBeam.ini
+
+build/
