@@ -56,6 +56,7 @@ with no other apps or overlays running. Make sure to try these:
 * Use only one monitor and disconnect any others
 * Set GPU settings to maximum performance (NVIDIA Control Panel: Power management mode)
 * Ensure "Background Application Max Frame Rate" is Off (NVIDIA Control Panel)
+* Adjust Queued Frames in ShaderBeam: for single GPU try 1; for dual GPU try 3
 
 Other options to try, results will depend on the game:
 
