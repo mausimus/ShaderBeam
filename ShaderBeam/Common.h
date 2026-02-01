@@ -42,7 +42,7 @@ namespace ShaderBeam
 #define HOTKEY_RESTART_KEY 'A'
 #define HOTKEY_QUIT_KEY 'Q'
 
-//#define RGB_TEST
+#define RGB_TEST
 
 struct AdapterInfo
 {

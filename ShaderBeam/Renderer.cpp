@@ -197,10 +197,12 @@ void Renderer::Benchmark(const std::shared_ptr<CaptureBase>& capture)
 
 void Renderer::Create()
 {
-    auto dxgiDevice = m_renderContext.device.as<IDXGIDevice1>();
-    dxgiDevice->SetMaximumFrameLatency(m_options.maxQueuedFrames);
+    IDXGIDevice1* dxgiDevice;
+    m_renderContext.device->QueryInterface(__uuidof(IDXGIDevice1), (void**)&dxgiDevice);
+    //auto dxgiDevice = dynamic_cast<IDXGIDevice1*>(m_renderContext.device.get());//.as<IDXGIDevice1>();
+    /*dxgiDevice->SetMaximumFrameLatency(m_options.maxQueuedFrames);
     if(m_options.gpuThreadPriority)
-        dxgiDevice->SetGPUThreadPriority(m_options.gpuThreadPriority | 0x40000000);
+        dxgiDevice->SetGPUThreadPriority(m_options.gpuThreadPriority | 0x40000000);*/
 
 #if _DEBUG
     m_debug = m_renderContext.device.as<ID3D11Debug>();

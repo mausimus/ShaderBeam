@@ -9,7 +9,6 @@ add_library(ImGui
 
 target_compile_definitions(ImGui PRIVATE GLFW_INCLUDE_NONE=1) 
 
-target_include_directories(ImGui PUBLIC /home/user/Projects/ShaderBeam/ImGui)
-target_include_directories(ImGui PUBLIC /home/user/Projects/dxvk/include/native/windows)
-target_include_directories(ImGui PUBLIC /home/user/Projects/dxvk/include/native/directx)
-target_include_directories(ImGui PUBLIC /home/user/Projects/ShaderBeam)
+target_include_directories(ImGui PUBLIC ./)
+target_include_directories(ImGui PUBLIC ../DXVK/include/dxvk)
+target_include_directories(ImGui PUBLIC ../)

@@ -17,14 +17,14 @@ add_executable(ShaderBeam
 
 target_compile_definitions(ShaderBeam PRIVATE GLFW_INCLUDE_NONE=1)
 
-target_include_directories(ShaderBeam PUBLIC /home/user/Projects/ShaderBeam)
-target_include_directories(ShaderBeam PUBLIC /home/user/Projects/ShaderBeam/ShaderBeam)
-target_include_directories(ShaderBeam PUBLIC /home/user/Projects/ShaderBeam/ImGui)
-target_include_directories(ShaderBeam PUBLIC /home/user/Projects/ShaderBeam/GLFW)
-target_include_directories(ShaderBeam PUBLIC /home/user/Projects/ShaderBeam/DXVK/include)
+target_include_directories(ShaderBeam PUBLIC ../)
+target_include_directories(ShaderBeam PUBLIC ./)
+target_include_directories(ShaderBeam PUBLIC ../ImGui)
+target_include_directories(ShaderBeam PUBLIC ../GLFW)
+target_include_directories(ShaderBeam PUBLIC ../DXVK/include/dxvk)
 
-target_link_directories(ShaderBeam PUBLIC /home/user/Projects/ShaderBeam/GLFW)
-target_link_directories(ShaderBeam PUBLIC /home/user/Projects/ShaderBeam/DXVK/lib)
+target_link_directories(ShaderBeam PUBLIC ../GLFW)
+target_link_directories(ShaderBeam PUBLIC ../DXVK/lib)
 target_link_libraries(ShaderBeam PRIVATE ImGui)
-target_link_libraries(ShaderBeam PRIVATE glfw3)
+target_link_libraries(ShaderBeam PRIVATE glfw)
 target_link_libraries(ShaderBeam PRIVATE dxvk_dxgi dxvk_d3d11)

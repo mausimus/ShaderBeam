@@ -43,6 +43,6 @@ private:
     std::vector<DisplayInfo> GetDisplays();
     void                     DefaultOptions();
 
-    static std::vector<winrt::com_ptr<IDXGIAdapter2>> EnumerateAdapters();
+    static std::vector<winrt::com_ptr<IDXGIAdapter1>> EnumerateAdapters();
 };
 } // namespace ShaderBeam

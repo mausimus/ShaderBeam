@@ -73,6 +73,9 @@ void ShaderBeam::UpdateVsyncRate()
     DwmGetCompositionTimingInfo(NULL, &dwmInfo);
     m_options.vsyncDuration = Helpers::QPCToDeltaMs(dwmInfo.qpcRefreshPeriod);
     m_options.vsyncRate     = 1000.0f / m_options.vsyncDuration;
+    #else
+    m_options.vsyncDuration = 16.6666f;
+    m_options.vsyncRate     = 60.0f;
     #endif
 }
 
@@ -161,7 +164,7 @@ void ShaderBeam::Start()
     {
         m_ui.SetError(ex.what());
     }
-
+  
     m_renderThread.Start(capture);
 
     m_active = true;
@@ -180,10 +183,10 @@ void ShaderBeam::Stop()
     m_active = false;
 }
 
-std::vector<winrt::com_ptr<IDXGIAdapter2>> ShaderBeam::EnumerateAdapters()
+std::vector<winrt::com_ptr<IDXGIAdapter1>> ShaderBeam::EnumerateAdapters()
 {
     winrt::com_ptr<IDXGIAdapter1>              pAdapter;
-    std::vector<winrt::com_ptr<IDXGIAdapter2>> vAdapters;
+    std::vector<winrt::com_ptr<IDXGIAdapter1>> vAdapters;
     IDXGIFactory1*                             pFactory = NULL;
 
     if(FAILED(CreateDXGIFactory1(__uuidof(IDXGIFactory1), (void**)&pFactory)))
@@ -192,7 +195,7 @@ std::vector<winrt::com_ptr<IDXGIAdapter2>> ShaderBeam::EnumerateAdapters()
     }
     for(UINT i = 0; pFactory->EnumAdapters1(i, pAdapter.put()) != DXGI_ERROR_NOT_FOUND; ++i)
     {
-        vAdapters.push_back(pAdapter.as<IDXGIAdapter2>());
+        vAdapters.push_back(pAdapter/*.as<IDXGIAdapter2>()*/);
     }
     if(pFactory)
     {
@@ -203,18 +206,18 @@ std::vector<winrt::com_ptr<IDXGIAdapter2>> ShaderBeam::EnumerateAdapters()
 
 std::vector<AdapterInfo> ShaderBeam::GetAdapters()
 {
-    const auto&              dxgiAdapters = EnumerateAdapters();
     std::vector<AdapterInfo> adapters;
+    const auto&              dxgiAdapters = EnumerateAdapters();
     int                      no = 0;
     for(auto adapter : dxgiAdapters)
     {
-        DXGI_ADAPTER_DESC2 desc;
-        if(SUCCEEDED(adapter->GetDesc2(&desc)))
+        DXGI_ADAPTER_DESC desc;
+        if(SUCCEEDED(adapter->GetDesc(&desc)))
         {
             if((desc.VendorId == 0x1414) && (desc.DeviceId == 0x8c))
                 continue; // Microsoft Basic Render Driver
 
-            const char* preempt = "";
+            /*const char* preempt = "";
             switch(desc.GraphicsPreemptionGranularity)
             {
             case DXGI_GRAPHICS_PREEMPTION_DMA_BUFFER_BOUNDARY:
@@ -232,8 +235,8 @@ std::vector<AdapterInfo> ShaderBeam::GetAdapters()
             case DXGI_GRAPHICS_PREEMPTION_INSTRUCTION_BOUNDARY:
                 preempt = " (I)";
                 break;
-            }
-            auto name = std::string("#") + std::to_string(no + 1) + ": " + Helpers::WCharToString(desc.Description) + std::string(preempt);
+            }*/
+            auto name = std::string("#") + std::to_string(no + 1) + ": ";// + Helpers::WCharToString(desc.Description) + std::string(preempt);
             adapters.emplace_back(no++, name, adapter, desc.AdapterLuid);
         }
     }

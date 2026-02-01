@@ -9,6 +9,7 @@ MIT License
 
 #include "ShaderBeam.h"
 
+#define GLFW_INCLUDE_VULKAN
 #include <GLFW/glfw3.h>
 
 #define GLFW_EXPOSE_NATIVE_WIN32
@@ -92,7 +93,7 @@ void Start()
     RegisterHotKey(s_hwnd, HOTKEY_QUIT, MOD_CONTROL | MOD_SHIFT, HOTKEY_QUIT_KEY);
 
     SetTimer(s_hwnd, 1, 1000, NULL);
-    #endif
+    #endif    
 }
 
 void Stop()
@@ -231,6 +232,7 @@ void Run()
     glfwWindowHint(GLFW_FLOATING, GLFW_TRUE);
     glfwWindowHint(GLFW_DECORATED, GLFW_FALSE);
     glfwWindowHint(GLFW_MOUSE_PASSTHROUGH, GLFW_FALSE);
+    glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
 
     s_window = glfwCreateWindow(640, 480, "ShaderBeam", NULL, NULL);
     if(!s_window)
