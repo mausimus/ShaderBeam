@@ -7,11 +7,13 @@
 #define LOAD_BOOL(ini, var) var = ini.has(#var) ? ini.get(#var) == "1" : var;
 #define LOAD_INT(ini, var) var = ini.has(#var) ? std::stoi(ini.get(#var)) : var;
 #define LOAD_STRING(ini, var) var = ini.has(#var) ? ini.get(#var) : var;
+#define LOAD_FLOAT(ini, var) var = ini.has(#var) ? std::stof(ini.get(#var)) : var;
 
 #define SAVE_VERSION(ini) ini["version"] = "2";
 #define SAVE_BOOL(ini, var) ini[#var] = var ? "1" : "0";
 #define SAVE_INT(ini, var) ini[#var] = std::to_string(var);
 #define SAVE_STRING(ini, var) ini[#var] = var;
+#define SAVE_FLOAT(ini, var) ini[#var] = std::to_string(var);
 
 #define SETTINGS_FILE "ShaderBeam.ini"
 
@@ -50,6 +52,13 @@ void Options::Save(const ShaderManager& shaderManager) const
             SAVE_BOOL(s, autoSync)
             SAVE_BOOL(s, useHdr)
             SAVE_INT(s, maxQueuedFrames)
+            SAVE_FLOAT(s, areaLeft)
+            SAVE_FLOAT(s, areaTop)
+            SAVE_FLOAT(s, areaRight)
+            SAVE_FLOAT(s, areaBottom)
+            SAVE_FLOAT(s, areaRadius)
+            SAVE_FLOAT(s, areaCurvatureX)
+            SAVE_FLOAT(s, areaCurvatureY)
 
             auto& shader = ini["shader"];
             for(const auto& param : shaderManager.GetParameterInfos())
@@ -102,6 +111,13 @@ void Options::Load(ShaderManager& shaderManager)
                 LOAD_BOOL(s, autoSync)
                 LOAD_BOOL(s, useHdr)
                 LOAD_INT(s, maxQueuedFrames)
+                LOAD_FLOAT(s, areaLeft)
+                LOAD_FLOAT(s, areaTop)
+                LOAD_FLOAT(s, areaRight)
+                LOAD_FLOAT(s, areaBottom)
+                LOAD_FLOAT(s, areaRadius)
+                LOAD_FLOAT(s, areaCurvatureX)
+                LOAD_FLOAT(s, areaCurvatureY)
             }
 
             if(ini.has("shader") && shaderProfileNo <= shaderManager.GetShaders().size())
@@ -127,5 +143,10 @@ void Options::Load(ShaderManager& shaderManager)
     }
     catch(...)
     { }
+}
+
+EffectArea Options::GetEffectArea() const
+{
+    return EffectArea { areaLeft, areaTop, areaRight, areaBottom, areaRadius, areaCurvatureX, areaCurvatureY };
 }
 } // namespace ShaderBeam

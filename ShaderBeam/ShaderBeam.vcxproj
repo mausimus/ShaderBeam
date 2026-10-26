@@ -141,6 +141,7 @@
     <ClInclude Include="CaptureDD.h" />
     <ClInclude Include="CaptureWGC.h" />
     <ClInclude Include="Charts.h" />
+    <ClInclude Include="EffectMask.h" />
     <ClInclude Include="framework.h" />
     <ClInclude Include="Helpers.h" />
     <ClInclude Include="imgui\imconfig.h" />
@@ -169,6 +170,7 @@
     <ClCompile Include="CaptureWGC.cpp" />
     <ClCompile Include="Charts.cpp" />
     <ClCompile Include="Common.cpp" />
+    <ClCompile Include="EffectMask.cpp" />
     <ClCompile Include="Helpers.cpp" />
     <ClCompile Include="ShaderProfile.cpp" />
     <ClCompile Include="ShaderManager.cpp" />

@@ -33,6 +33,20 @@ namespace ShaderBeam
 #define HOTKEY_RESTART_KEY 'A'
 #define HOTKEY_QUIT_KEY 'Q'
 
+// The part of the output the shader applies to: a rectangle with rounded corners whose edges can
+// curve like a CRT tube's. With u and v running from -1 to 1 across the rectangle, the left and
+// right edges are where u * (1 + curvatureX * (u*u + v*v)) / (1 + curvatureX) = +-1, and the top
+// and bottom edges likewise with v and curvatureY (crt-pi's barrel distortion). So the edges touch
+// the rectangle at their middles and curve inwards towards the corners; 0 keeps them straight.
+struct EffectArea
+{
+    float left { 0.0f }, top { 0.0f }, right { 1.0f }, bottom { 1.0f }; // fractions of the output
+    float radius { 0.0f };                                             // fraction of the output height
+    float curvatureX { 0.0f }, curvatureY { 0.0f };
+
+    bool IsRectangle() const { return radius <= 0.0f && curvatureX <= 0.0f && curvatureY <= 0.0f; }
+};
+
 //#define RGB_TEST
 
 struct AdapterInfo
@@ -142,6 +156,16 @@ struct Options
     int  maxQueuedFrames { 0 };
     bool rememberSettings { true };
 
+    // Effect area (see EffectArea). The shader applies inside it; outside it the captured image is
+    // shown unchanged, e.g. the bezel a CRT shader draws around its screen.
+    float areaLeft { 0.0f };
+    float areaTop { 0.0f };
+    float areaRight { 1.0f };
+    float areaBottom { 1.0f };
+    float areaRadius { 0.0f };
+    float areaCurvatureX { 0.0f };
+    float areaCurvatureY { 0.0f };
+
     // internal options
     bool     exclusive { false };
     unsigned wgcBuffers { 16 };
@@ -161,5 +185,8 @@ struct Options
 
     void Save(const ShaderManager& shaderManager) const;
     void Load(ShaderManager& shaderManager);
+
+    // The effect area in use.
+    EffectArea GetEffectArea() const;
 };
 } // namespace ShaderBeam

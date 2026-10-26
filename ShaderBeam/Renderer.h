@@ -12,6 +12,7 @@ MIT License
 #include "Charts.h"
 #include "RenderContext.h"
 #include "ShaderManager.h"
+#include "EffectMask.h"
 
 namespace ShaderBeam
 {
@@ -43,6 +44,7 @@ private:
     Charts         m_charts;
     RenderContext  m_renderContext;
     ShaderManager& m_shaderManager;
+    EffectMask     m_effectMask;
 
     void Create();
     void CreateInputs();
@@ -50,6 +52,11 @@ private:
     void DestroyInputs();
     void WaitTillIdle();
     int  GetNextSlot() const;
+
+    // The rectangle the shader applies to, in pixels (the effect area's, limited by split-screen).
+    D3D11_RECT GetEffectRect(const EffectArea& area) const;
+    // Show the captured image unchanged everywhere outside that rectangle.
+    void CopyOutsideEffectRect(const D3D11_RECT& area);
 
     winrt::com_ptr<IDXGISwapChain1>         m_swapChain { nullptr };
     winrt::com_ptr<ID3D11RasterizerState>   m_rasterizerState { nullptr };
