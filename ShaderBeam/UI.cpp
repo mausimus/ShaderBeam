@@ -379,6 +379,50 @@ void UI::Render()
             }
             ShowHelpMarker("Split-screen mode for before/after comparison.");
 
+            const EffectArea shownArea = m_options.GetEffectArea();
+            float            area[4]   = { shownArea.left * 100.0f, shownArea.top * 100.0f, shownArea.right * 100.0f, shownArea.bottom * 100.0f };
+            if(ImGui::SliderFloat4("Effect Area", area, 0.0f, 100.0f, "%.1f%%"))
+            {
+                // keep at least 1% between opposite edges
+                for(int i = 0; i < 2; i++)
+                {
+                    if(area[i + 2] < area[i] + 1.0f)
+                    {
+                        area[i + 2] = (std::min)(100.0f, area[i] + 1.0f);
+                        area[i]     = area[i + 2] - 1.0f;
+                    }
+                }
+                m_options.areaLeft   = area[0] / 100.0f;
+                m_options.areaTop    = area[1] / 100.0f;
+                m_options.areaRight  = area[2] / 100.0f;
+                m_options.areaBottom = area[3] / 100.0f;
+            }
+            ImGui::SameLine();
+            if(ImGui::SmallButton("Full"))
+            {
+                m_options.areaLeft = m_options.areaTop = 0.0f;
+                m_options.areaRight = m_options.areaBottom = 1.0f;
+                m_options.areaRadius = m_options.areaCurvatureX = m_options.areaCurvatureY = 0.0f;
+            }
+            ShowHelpMarker("Left, top, right and bottom edges of the part of the screen the shader applies to.\n"
+                           "Outside it the image is shown unchanged, e.g. the bezel around a CRT shader's screen.\n"
+                           "Applies immediately.");
+
+            float radius = shownArea.radius * 100.0f;
+            if(ImGui::SliderFloat("Area Corner Radius", &radius, 0.0f, 25.0f, "%.2f%%"))
+                m_options.areaRadius = radius / 100.0f;
+            ShowHelpMarker("Rounds the effect area's corners. Percentage of the screen height.");
+
+            float curvature[2] = { shownArea.curvatureX, shownArea.curvatureY };
+            if(ImGui::SliderFloat2("Area Curvature", curvature, 0.0f, 0.25f, "%.3f"))
+            {
+                m_options.areaCurvatureX = curvature[0];
+                m_options.areaCurvatureY = curvature[1];
+            }
+            ShowHelpMarker("Curves the effect area's left/right and top/bottom edges like a CRT tube's:\n"
+                           "they touch the area at their middles and curve in towards the corners.\n"
+                           "0 keeps them straight.");
+
             if(ImGui::BeginCombo("Queued Frames", m_queuedFrames[m_pending.maxQueuedFrames].c_str(), 0))
             {
                 for(auto i = 0; i < m_queuedFrames.size(); i++)

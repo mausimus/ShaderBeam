@@ -43,22 +43,18 @@ void Renderer::Render(bool present, bool ui)
     ID3D11RenderTargetView* targets[1] = { m_renderContext.outputTargetView.get() };
     m_renderContext.deviceContext->OMSetRenderTargets(1, targets, NULL);
 
+    // The shader only draws inside the effect area's rectangle; the captured image is copied around
+    // it, and blended back in outside the area's rounded corners and curved edges.
+    const EffectArea effectArea = m_options.GetEffectArea();
+    const D3D11_RECT area       = GetEffectRect(effectArea);
+    m_renderContext.deviceContext->RSSetScissorRects(1, &area);
+
     m_shaderManager.Render(m_renderContext);
 
-    if(m_options.splitScreen)
-    {
-        D3D11_BOX box {};
-        UINT      destX = m_options.splitScreen == 1 ? m_options.outputWidth / 2 : 0;
-        UINT      destY = m_options.splitScreen == 2 ? m_options.outputHeight / 2 : 0;
-        box.left        = destX;
-        box.top         = destY;
-        box.right       = m_options.outputWidth;
-        box.bottom      = m_options.outputHeight;
-        box.front       = 0;
-        box.back        = 1;
-        m_renderContext.deviceContext->CopySubresourceRegion(
-            m_renderContext.outputTexture.get(), 0, destX, destY, 0, m_renderContext.inputTextures[m_renderContext.inputSlots[0]].get(), 0, &box);
-    }
+    CopyOutsideEffectRect(area);
+    m_effectMask.Render(m_renderContext, effectArea);
+    const D3D11_RECT full { 0, 0, static_cast<LONG>(m_options.outputWidth), static_cast<LONG>(m_options.outputHeight) };
+    m_renderContext.deviceContext->RSSetScissorRects(1, &full); // charts and UI use the whole output
 
     if(ui && m_options.charts)
         m_charts.Render(m_renderContext.outputTexture, m_options.outputHeight);
@@ -85,6 +81,45 @@ void Renderer::Render(bool present, bool ui)
         Present(true);
     }
     m_watcher.FrameSubmitted();
+}
+
+D3D11_RECT Renderer::GetEffectRect(const EffectArea& area) const
+{
+    const LONG width  = static_cast<LONG>(m_options.outputWidth);
+    const LONG height = static_cast<LONG>(m_options.outputHeight);
+
+    // every pixel the area touches; the mask blends the partly covered ones
+    D3D11_RECT rect {};
+    rect.left   = std::clamp(static_cast<LONG>(std::floor(area.left * width)), 0L, width);
+    rect.top    = std::clamp(static_cast<LONG>(std::floor(area.top * height)), 0L, height);
+    rect.right  = std::clamp(static_cast<LONG>(std::ceil(area.right * width)), rect.left, width);
+    rect.bottom = std::clamp(static_cast<LONG>(std::ceil(area.bottom * height)), rect.top, height);
+
+    // split-screen: the effect on the left or top half only, for before/after comparison
+    if(m_options.splitScreen == 1)
+        rect.right = (std::max)(rect.left, (std::min)(rect.right, width / 2));
+    if(m_options.splitScreen == 2)
+        rect.bottom = (std::max)(rect.top, (std::min)(rect.bottom, height / 2));
+    return rect;
+}
+
+void Renderer::CopyOutsideEffectRect(const D3D11_RECT& area)
+{
+    const LONG width  = static_cast<LONG>(m_options.outputWidth);
+    const LONG height = static_cast<LONG>(m_options.outputHeight);
+    const auto input  = m_renderContext.inputTextures[m_renderContext.inputSlots[0]].get();
+
+    auto copy = [&](LONG left, LONG top, LONG right, LONG bottom) {
+        if(right <= left || bottom <= top)
+            return;
+        D3D11_BOX box { static_cast<UINT>(left), static_cast<UINT>(top), 0, static_cast<UINT>(right), static_cast<UINT>(bottom), 1 };
+        m_renderContext.deviceContext->CopySubresourceRegion(
+            m_renderContext.outputTexture.get(), 0, static_cast<UINT>(left), static_cast<UINT>(top), 0, input, 0, &box);
+    };
+    copy(0, 0, width, area.top);                    // above
+    copy(0, area.bottom, width, height);            // below
+    copy(0, area.top, area.left, area.bottom);      // left
+    copy(area.right, area.top, width, area.bottom); // right
 }
 
 void Renderer::Present(bool vsync)
@@ -276,6 +311,8 @@ void Renderer::Create()
     dsDesc.StencilEnable = false;
     THROW(m_renderContext.device->CreateDepthStencilState(&dsDesc, m_depthStencilState.put()), "Unable to create depth/stencil state");
 
+    m_effectMask.Create(m_renderContext);
+
     D3D11_RECT scissor {};
     scissor.left   = 0;
     scissor.top    = 0;
@@ -346,6 +383,7 @@ void Renderer::CreateInputs()
 
 void Renderer::Destroy()
 {
+    m_effectMask.Destroy();
     m_depthStencilState              = nullptr;
     m_rasterizerState                = nullptr;
     m_swapChain                      = nullptr;
